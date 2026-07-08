@@ -1,0 +1,21 @@
+# --- Python / backend ---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db            # SQLite local (datos personales, no se versiona)
+
+# --- Node / frontend ---
+node_modules/
+dist/
+playwright-report/
+test-results/
+
+# --- Secretos ---
+.env
+
+# --- SO / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
