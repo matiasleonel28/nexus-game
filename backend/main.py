@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from database import create_tables
 from scheduler import start_scheduler
-from routers import search, backlog, wishlist, auth
+from routers import search, backlog, wishlist, auth, hunter
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,4 +25,5 @@ app.add_middleware(
 app.include_router(search.router,   prefix="/api")
 app.include_router(backlog.router,  prefix="/api")
 app.include_router(wishlist.router, prefix="/api")
+app.include_router(hunter.router,   prefix="/api", tags=["Hunter"])
 app.include_router(auth.router,     prefix="/api/auth", tags=["Auth"])

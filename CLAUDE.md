@@ -21,8 +21,11 @@ Ese flujo vertical ya funciona hoy.
 
 ## Lo que la v1 NO hace (alcance escrito a propósito)
 
-- No integra IsThereAnyDeal todavía (los precios hoy salen de CheapShark, solo
-  Steam). eShop/Xbox y ARS son objetivo de spec, no están construidos.
+- El adaptador de IsThereAnyDeal (`services/itad.py`, precios Steam/eShop/Xbox
+  en ARS) ya está escrito y cableado (`routers/hunter.py`), pero necesita
+  `ITAD_API_KEY` en el `.env` para activarse. Sin key devuelve 503. Los precios
+  del backlog viejo siguen viniendo de CheapShark (solo Steam/USD) hasta migrar.
+  Endpoints de verificación: `GET /api/hunter/prices?title=` y `/api/hunter/raw?title=`.
 - No es app Tauri todavía (corre como web local). Tauri está en la spec.
 - Sin bot de Telegram, sin push, sin sync multi-dispositivo, sin IA.
 - Sin precios de PS5.
