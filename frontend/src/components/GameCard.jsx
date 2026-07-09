@@ -11,7 +11,7 @@ function getButtonClass(variant = 'primary') {
 
 import { platformLabel } from '../constants'
 
-export default function GameCard({ game, actions = [], controls = null }) {
+export default function GameCard({ game, actions = [], controls = null, onDelete = null }) {
   const getHighResCover = (url) => {
     if (!url) return "https://via.placeholder.com/264x352?text=No+Cover";
     const cleanUrl = url.startsWith('//') ? `https:${url}` : url;
@@ -37,6 +37,22 @@ export default function GameCard({ game, actions = [], controls = null }) {
           <span className="absolute top-2 right-2 bg-[#ff4655] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow">
             Co-op
           </span>
+        )}
+
+        {/* Ícono de eliminar (tacho) */}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            title="Eliminar de la biblioteca"
+            aria-label="Eliminar de la biblioteca"
+            className="absolute top-2 left-2 z-10 rounded bg-black/60 text-gray-200 p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[#ff4655] hover:text-white transition"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getBacklog, updateGame, deleteGame } from '../api/games'
 import GameCard from '../components/GameCard'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { LIBRARY_STATUSES, PLATFORMS } from '../constants'
 
@@ -17,12 +18,16 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState("todos")
 
   const [actioning, setActioning] = useState([])
+  const [pendingDelete, setPendingDelete] = useState(null)   // juego a confirmar borrado
+  const [deleting, setDeleting] = useState(false)
 
   const { backlogVersion } = useGameRefresh()
 
-  const fetchBacklog = useCallback(async (signal = { current: true }) => {
+  // silent = recarga los datos sin mostrar el spinner de pantalla completa
+  // (evita el "parpadeo" al editar estado/plataforma en el lugar)
+  const fetchBacklog = useCallback(async (signal = { current: true }, { silent = false } = {}) => {
     if (!signal.current) return
-    setLoading(true)
+    if (!silent) setLoading(true)
     setError(null)
     try {
       const params = { sort: sortOption }
@@ -33,7 +38,7 @@ export default function Dashboard() {
     } catch (err) {
       if (signal.current) setError(err)
     } finally {
-      if (signal.current) setLoading(false)
+      if (signal.current && !silent) setLoading(false)
     }
   }, [sortOption, statusFilter])
 
@@ -51,7 +56,7 @@ export default function Dashboard() {
     setError(null)
     try {
       await updateGame(game.id, patch)
-      await fetchBacklog()
+      await fetchBacklog({ current: true }, { silent: true })   // sin parpadeo
     } catch (err) {
       setError(err)
     } finally {
@@ -59,18 +64,18 @@ export default function Dashboard() {
     }
   }
 
-  const handleDelete = async (game) => {
-    if (!window.confirm(`¿Eliminar "${game.title}" de tu biblioteca? Esta acción no se puede deshacer.`)) return
-    const key = `del-${game.id}`
-    setActioning(prev => [...prev, key])
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
     setError(null)
     try {
-      await deleteGame(game.id)
-      await fetchBacklog()
+      await deleteGame(pendingDelete.id)
+      setPendingDelete(null)
+      await fetchBacklog({ current: true }, { silent: true })
     } catch (err) {
       setError(err)
     } finally {
-      setActioning(prev => prev.filter(k => k !== key))
+      setDeleting(false)
     }
   }
 
@@ -187,20 +192,12 @@ export default function Dashboard() {
                   </select>
                 </div>
               )
-              const deleting = actioning.includes(`del-${game.id}`)
               return (
                 <GameCard
                   key={game.id}
                   game={game}
                   controls={controls}
-                  actions={[
-                    {
-                      label: deleting ? 'Eliminando...' : 'Eliminar',
-                      onClick: () => handleDelete(game),
-                      disabled: deleting || busy,
-                      variant: 'danger',
-                    },
-                  ]}
+                  onDelete={() => setPendingDelete(game)}
                 />
               )
             })}
@@ -214,6 +211,17 @@ export default function Dashboard() {
         )}
 
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Eliminar juego"
+        message={pendingDelete ? `¿Seguro que querés eliminar "${pendingDelete.title}" de tu biblioteca? Esta acción no se puede deshacer.` : ''}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        busy={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }
