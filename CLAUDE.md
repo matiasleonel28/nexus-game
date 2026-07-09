@@ -112,7 +112,13 @@ nexus/
 - **API-first:** toda la lógica de negocio en el backend; el frontend solo
   consume REST. El ordenamiento del backlog lo hace el backend, no la UI.
 - **Servicios:** una fuente externa = un archivo en `services/`.
-- **UI:** tema oscuro. Fondo `#0b0d12`, acento rojo `#ff4655`.
+- **UI (sistema de diseño "ledger del jugador"):** tokens como CSS vars en
+  `src/index.css` (`--ink`, `--surface`, `--surface-2/3`, `--line`, `--text`,
+  `--muted`, `--accent` ámbar, `--positive`, `--danger`). Usar siempre los
+  tokens vía `bg-[var(--surface)]` etc., no hex sueltos. Tipografías: **Space
+  Grotesk** (UI) + **Space Mono** para datos numéricos (clase `.font-num`, que
+  es el elemento firma: horas/precios en mono tabular). Ámbar = valor; verde
+  solo para ofertas; rojo solo destructivo. Texto oscuro (`--ink`) sobre ámbar.
 - **Carátulas IGDB:** vienen sin protocolo y en baja resolución. Usar
   `buildCoverUrl` (agrega `https:` y cambia `t_thumb` → `t_cover_big`).
 - **Regla de negocio:** en `SearchView` las horas HLTB y los precios quedan

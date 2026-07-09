@@ -31,11 +31,11 @@ export default function HunterView() {
   const hasAnyData = Object.keys(stores).length > 0
 
   return (
-    <div className="min-h-screen bg-[#0b0d12] text-white p-6 font-sans">
+    <div className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
       <div className="max-w-3xl mx-auto">
 
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-[#ff4655] font-bold">Hunter</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--accent)] font-bold">Hunter</p>
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Cazador de ofertas</h1>
           <p className="text-gray-500 text-xs mt-1">Precios en pesos (ARS) en Steam, Nintendo eShop y Xbox Store</p>
         </div>
@@ -47,12 +47,12 @@ export default function HunterView() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="TÍTULO DEL JUEGO (EJ: HOLLOW KNIGHT)..."
-            className="flex-1 rounded bg-[#11141b] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 outline-none focus:border-[#ff4655] tracking-wide"
+            className="flex-1 rounded bg-[var(--surface)] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 outline-none focus:border-[var(--accent)] tracking-wide"
           />
           <button
             type="submit"
             disabled={loading}
-            className="rounded bg-[#ff4655] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded bg-[var(--accent)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-[var(--ink)] hover:bg-[var(--accent-strong)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Buscando...' : 'Cazar precios'}
           </button>
@@ -69,8 +69,8 @@ export default function HunterView() {
         )}
 
         {!loading && result && !hasAnyData && (
-          <div className="rounded-lg border border-gray-800 bg-[#11141b] px-6 py-10 text-center text-gray-400">
-            <p className="text-sm font-bold uppercase tracking-wider text-[#ff4655] mb-1">Sin datos de precio</p>
+          <div className="rounded-lg border border-gray-800 bg-[var(--surface)] px-6 py-10 text-center text-gray-400">
+            <p className="text-sm font-bold uppercase tracking-wider text-[var(--accent)] mb-1">Sin datos de precio</p>
             <p className="text-xs">No encontramos precios de "{searchedTitle}" en Steam/eShop/Xbox. Probá con otro título.</p>
           </div>
         )}
@@ -88,13 +88,13 @@ export default function HunterView() {
                 const isHistoricLow = current != null && lowest != null && current <= lowest * 1.001
 
                 return (
-                  <div key={store.key} className="rounded-lg border border-gray-800 bg-[#11141b] p-4 flex items-center justify-between gap-4">
+                  <div key={store.key} className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-white font-bold text-sm">{store.label}</p>
+                      <p className="text-[var(--text)] font-semibold text-sm">{store.label}</p>
                       {p ? (
-                        <p className="text-gray-500 text-[11px] mt-0.5">
-                          Mínimo histórico: {formatPrice(lowest, currency) ?? '—'}
-                          {isHistoricLow && <span className="ml-2 text-[#ff4655] font-bold">🔥 ¡en su mínimo!</span>}
+                        <p className="text-[var(--muted)] text-[11px] mt-0.5">
+                          Mínimo histórico: <span className="font-num">{formatPrice(lowest, currency) ?? '—'}</span>
+                          {isHistoricLow && <span className="ml-2 text-[var(--accent)] font-bold">🔥 ¡en su mínimo!</span>}
                         </p>
                       ) : (
                         <p className="text-gray-600 text-[11px] mt-0.5">Sin datos en esta tienda</p>
@@ -104,17 +104,17 @@ export default function HunterView() {
                     <div className="text-right shrink-0">
                       {p && current != null ? (
                         <>
-                          <p className="text-white text-lg font-black leading-none">
+                          <p className={`font-num text-2xl leading-none ${isHistoricLow ? 'text-[var(--positive)]' : 'text-[var(--text)]'}`}>
                             {formatPrice(current, currency)}
                           </p>
                           {cut > 0 && (
-                            <span className="inline-block mt-1 bg-[#ff4655] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            <span className="inline-block mt-1 bg-[var(--accent)] text-[var(--ink)] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                               -{cut}%
                             </span>
                           )}
                           {p.url && (
                             <a href={p.url} target="_blank" rel="noreferrer"
-                              className="block text-[10px] text-gray-500 hover:text-[#ff4655] mt-1 uppercase tracking-wider font-bold">
+                              className="block text-[10px] text-gray-500 hover:text-[var(--accent)] mt-1 uppercase tracking-wider font-bold">
                               Ver oferta ↗
                             </a>
                           )}

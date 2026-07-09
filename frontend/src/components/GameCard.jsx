@@ -1,15 +1,15 @@
+import { platformLabel } from '../constants'
+
 function getButtonClass(variant = 'primary') {
   const base = 'w-full rounded mt-3 px-3 py-2 text-xs font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60'
   if (variant === 'danger') {
-    return `${base} border border-red-600 bg-transparent text-[#ff4655] hover:bg-red-600 hover:text-white`
+    return `${base} border border-[var(--danger)]/60 bg-transparent text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white`
   }
   if (variant === 'secondary') {
-    return `${base} border border-gray-700 bg-[#1e2330] text-gray-300 hover:border-[#ff4655] hover:text-[#ff4655]`
+    return `${base} border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]`
   }
-  return `${base} bg-[#ff4655] text-white hover:bg-red-600`
+  return `${base} bg-[var(--accent)] text-[var(--ink)] hover:bg-[var(--accent-strong)]`
 }
-
-import { platformLabel } from '../constants'
 
 export default function GameCard({ game, actions = [], controls = null, onDelete = null }) {
   const getHighResCover = (url) => {
@@ -22,31 +22,29 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
   const ownedLabel = platformLabel(game.owned_platform);
 
   return (
-    <div className="flex flex-col bg-[#11141b] border border-gray-800 rounded-lg overflow-hidden hover:border-[#ff4655] transition-all duration-300 shadow-xl group">
-      
-      {/* Contenedor de la Carátula */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-900">
-        <img 
-          src={getHighResCover(game.cover_url)} 
+    <div className="flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-lg overflow-hidden hover:border-[var(--accent)] transition-colors duration-200 group">
+
+      {/* Carátula */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-3)]">
+        <img
+          src={getHighResCover(game.cover_url)}
           alt={`Carátula de ${game.title}`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
-        {/* Badge flotante si tiene Coop */}
         {game.has_coop && (
-          <span className="absolute top-2 right-2 bg-[#ff4655] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shadow">
+          <span className="absolute top-2 right-2 bg-[var(--accent)] text-[var(--ink)] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
             Co-op
           </span>
         )}
 
-        {/* Ícono de eliminar (tacho) */}
         {onDelete && (
           <button
             type="button"
             onClick={onDelete}
             title="Eliminar de la biblioteca"
             aria-label="Eliminar de la biblioteca"
-            className="absolute top-2 left-2 z-10 rounded bg-black/60 text-gray-200 p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[#ff4655] hover:text-white transition"
+            className="absolute top-2 left-2 z-10 rounded bg-black/60 text-gray-200 p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[var(--danger)] hover:text-white transition"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
@@ -56,46 +54,42 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
         )}
       </div>
 
-      {/* Cuerpo de la Tarjeta */}
-      <div className="p-4 flex flex-col flex-grow justify-between bg-[#11141b]">
+      {/* Cuerpo */}
+      <div className="p-4 flex flex-col flex-grow justify-between">
         <div>
-          {/* Título del Juego */}
-          <h3 className="text-white font-bold text-base line-clamp-1 group-hover:text-[#ff4655] transition-colors" title={game.title}>
+          <h3 className="text-[var(--text)] font-semibold text-base line-clamp-1 group-hover:text-[var(--accent)] transition-colors" title={game.title}>
             {game.title}
           </h3>
 
-          {/* Badge de TU plataforma (distinta de las de IGDB de abajo) */}
+          {/* Tu plataforma */}
           {!isSearch && (
             <div className="mt-1.5">
               {ownedLabel ? (
-                <span className="inline-block bg-[#ff4655]/15 text-[#ff4655] border border-[#ff4655]/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                  🎮 {ownedLabel}
+                <span className="inline-block bg-[var(--accent)]/12 text-[var(--accent)] border border-[var(--accent)]/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                  {ownedLabel}
                 </span>
               ) : (
-                <span className="inline-block bg-[#1e2330] text-gray-500 border border-gray-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                <span className="inline-block bg-[var(--surface-2)] text-[var(--muted)] border border-[var(--line)] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                   Sin plataforma
                 </span>
               )}
             </div>
           )}
 
-          {/* Sección HLTB */}
+          {/* Firma: horas HLTB en mono tabular */}
           {!isSearch && (
-            <div className="mt-3 flex justify-between items-end">
+            <div className="mt-4 flex justify-between items-end">
               <div>
-                <p className="text-gray-500 text-[11px] uppercase tracking-wider font-semibold">
-                  Main Story
-                </p>
-                <p className="text-[#ff4655] text-2xl font-black mt-0.5 leading-none">
-                  {game.hltb_main_hours ? `${game.hltb_main_hours}H` : '--'}
+                <p className="text-[var(--muted)] text-[10px] uppercase tracking-[0.15em] font-semibold mb-1">Historia</p>
+                <p className="font-num text-[var(--accent)] text-3xl leading-none">
+                  {game.hltb_main_hours ? game.hltb_main_hours : '—'}
+                  {game.hltb_main_hours ? <span className="text-[var(--muted)] text-base ml-0.5">h</span> : null}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">
-                  100%
-                </p>
-                <p className="text-white text-sm font-bold mt-0.5 leading-none">
-                  {game.hltb_completionist_hours ? `${game.hltb_completionist_hours}H` : '--'}
+                <p className="text-[var(--muted)] text-[10px] uppercase tracking-[0.15em] font-semibold mb-1">100%</p>
+                <p className="font-num text-[var(--text)] text-lg leading-none">
+                  {game.hltb_completionist_hours ? `${game.hltb_completionist_hours}h` : '—'}
                 </p>
               </div>
             </div>
@@ -103,37 +97,30 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
         </div>
 
         <div>
-          {/* Sección Inferior: Plataformas y Precio */}
-          <div className="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between">
-            {/* Plataformas */}
+          {/* Plataformas IGDB + precio */}
+          <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between gap-2">
             <div className="flex gap-1.5 flex-wrap">
               {game.platforms?.map((plat) => (
-                <span 
-                  key={plat} 
-                  className="bg-[#1e2330] text-gray-300 text-[10px] font-bold px-2 py-0.5 rounded"
-                >
+                <span key={plat} className="bg-[var(--surface-2)] text-[var(--muted)] text-[10px] font-bold px-2 py-0.5 rounded">
                   {plat}
                 </span>
               ))}
             </div>
-            
-            {/* Precio (Si no es búsqueda) */}
+
             {!isSearch && (
-              <div className="text-right flex flex-col items-end">
-                <p className="text-white text-xs font-bold">
-                  {game.current_price != null ? `$${game.current_price.toFixed(2)}` : 'Sin precio'}
+              <div className="text-right flex flex-col items-end shrink-0">
+                <p className="font-num text-[var(--text)] text-sm">
+                  {game.current_price != null ? `$${game.current_price.toFixed(2)}` : <span className="text-[var(--muted)] font-sans">Sin precio</span>}
                 </p>
                 {game.current_price != null && game.price_store && (
-                  <span className="text-gray-500 text-[10px] font-semibold uppercase">{game.price_store}</span>
+                  <span className="text-[var(--muted)] text-[10px] font-semibold uppercase">{game.price_store}</span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Controles (selectores de estado/plataforma) */}
           {controls}
 
-          {/* Botones de acción (dinámicos según la vista) */}
           {actions.length > 0 && (
             <div className="mt-1 grid gap-2">
               {actions.map((action, index) => (

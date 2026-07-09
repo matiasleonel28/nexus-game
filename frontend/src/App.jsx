@@ -20,25 +20,26 @@ export default function App() {
   return (
     <GameRefreshProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-[#0b0d12] text-white font-sans">
-          <header className="border-b border-gray-800 bg-[#0b0d12]/95 sticky top-0 z-10 backdrop-blur-sm">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-[#ff4655] font-bold">Game Manager</p>
-                <h1 className="text-xl font-black uppercase tracking-wider text-white">Mi colección</h1>
+        <div className="min-h-screen bg-[var(--ink)] text-[var(--text)]">
+          <header className="border-b border-[var(--line)] bg-[var(--ink)]/90 sticky top-0 z-20 backdrop-blur-md">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold tracking-tight text-[var(--text)]">NEXUS</span>
+                <span className="font-num text-[var(--accent)] text-sm">/</span>
+                <span className="hidden sm:inline text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Biblioteca · Ofertas</span>
               </div>
 
-              <nav className="flex flex-wrap gap-3">
+              <nav className="flex flex-wrap gap-1.5">
                 {NAV_ITEMS.map(item => (
                   <NavLink
                     key={item.path}
                     to={item.path}
                     end={item.path === '/'}
                     className={({ isActive }) =>
-                      `rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                      `rounded px-3.5 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
                         isActive
-                          ? 'bg-[#ff4655] text-white shadow-md'
-                          : 'bg-[#11141b] border border-gray-800 text-gray-400 hover:border-[#ff4655] hover:text-[#ff4655]'
+                          ? 'bg-[var(--accent)] text-[var(--ink)]'
+                          : 'text-[var(--muted)] hover:text-[var(--accent)]'
                       }`
                     }
                   >

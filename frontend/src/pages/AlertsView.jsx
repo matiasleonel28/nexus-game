@@ -60,12 +60,12 @@ export default function AlertsView() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0d12] text-white p-6 font-sans">
+    <div className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
       <div className="max-w-3xl mx-auto">
 
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[#ff4655] font-bold">Hunter</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--accent)] font-bold">Hunter</p>
             <h1 className="text-3xl font-black uppercase tracking-wider text-white">Alertas</h1>
             <p className="text-gray-500 text-xs mt-1">Cuando un juego vigilado baja de tu objetivo o toca su mínimo histórico</p>
           </div>
@@ -73,7 +73,7 @@ export default function AlertsView() {
             type="button"
             onClick={handleCheckNow}
             disabled={checking}
-            className="shrink-0 rounded bg-[#ff4655] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="shrink-0 rounded bg-[var(--accent)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--ink)] hover:bg-[var(--accent-strong)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {checking ? 'Revisando...' : 'Revisar precios ahora'}
           </button>
@@ -89,7 +89,7 @@ export default function AlertsView() {
         {loading && <div className="text-center py-16 text-gray-500 font-bold">Cargando alertas...</div>}
 
         {!loading && alerts.length === 0 && !error && (
-          <div className="rounded-lg border border-gray-800 bg-[#11141b] px-6 py-10 text-center text-gray-400">
+          <div className="rounded-lg border border-gray-800 bg-[var(--surface)] px-6 py-10 text-center text-gray-400">
             <p className="text-sm font-bold uppercase tracking-wider mb-1">Sin alertas todavía</p>
             <p className="text-xs">Poné un precio objetivo a un juego en la Wishlist y tocá "Revisar precios ahora".</p>
           </div>
@@ -101,7 +101,7 @@ export default function AlertsView() {
               <div
                 key={a.id}
                 className={`rounded-lg border p-4 flex items-center justify-between gap-4 ${
-                  a.is_read ? 'border-gray-800 bg-[#0f1218] opacity-60' : 'border-[#ff4655]/40 bg-[#11141b]'
+                  a.is_read ? 'border-gray-800 bg-[var(--surface-3)] opacity-60' : 'border-[var(--accent)]/40 bg-[var(--surface)]'
                 }`}
               >
                 <div className="min-w-0">
@@ -117,7 +117,7 @@ export default function AlertsView() {
                   <button
                     type="button"
                     onClick={() => handleRead(a.id)}
-                    className="shrink-0 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-gray-700 bg-[#1e2330] text-gray-300 hover:border-[#ff4655] hover:text-[#ff4655] transition"
+                    className="shrink-0 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-gray-700 bg-[var(--surface-2)] text-gray-300 hover:border-[var(--accent)] hover:text-[var(--accent)] transition"
                   >
                     Marcar leída
                   </button>

@@ -74,7 +74,7 @@ export default function SearchView() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0d12] text-white p-6 font-sans">
+    <main className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">
@@ -95,14 +95,14 @@ export default function SearchView() {
               setError(null)
               setSuccess(null)
             }}
-            className="flex-1 rounded bg-[#11141b] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 shadow-md outline-none focus:border-[#ff4655] focus:ring-1 focus:ring-[#ff4655] tracking-wide transition-all"
+            className="flex-1 rounded bg-[var(--surface)] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 shadow-md outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] tracking-wide transition-all"
             placeholder="BUSCAR EN LA BASE DE DATOS (EJ: HOLLOW KNIGHT)..."
             aria-label="Buscar juego"
           />
           <button
             type="submit"
             disabled={loading}
-            className="rounded bg-[#ff4655] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-red-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded bg-[var(--accent)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-[var(--ink)] transition-colors hover:bg-[var(--accent-strong)] shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
@@ -122,7 +122,7 @@ export default function SearchView() {
 
         {/* Estados Vacíos */}
         {!loading && !hasSearched && (
-          <div className="mb-6 rounded-lg border border-gray-800 bg-[#11141b] px-4 py-12 text-center text-gray-500">
+          <div className="mb-6 rounded-lg border border-gray-800 bg-[var(--surface)] px-4 py-12 text-center text-gray-500">
             <p className="text-sm font-bold tracking-wider uppercase">
               Ingresa un término arriba para comenzar la búsqueda.
             </p>
@@ -130,8 +130,8 @@ export default function SearchView() {
         )}
 
         {!loading && hasSearched && results.length === 0 && (
-          <div className="mb-6 rounded-lg border border-gray-800 bg-[#11141b] px-4 py-12 text-center text-gray-500">
-            <p className="text-sm font-bold tracking-wider uppercase text-[#ff4655]">
+          <div className="mb-6 rounded-lg border border-gray-800 bg-[var(--surface)] px-4 py-12 text-center text-gray-500">
+            <p className="text-sm font-bold tracking-wider uppercase text-[var(--accent)]">
               No se encontraron resultados
             </p>
             <p className="text-xs mt-2">Intenta con otros términos para "{query.trim()}".</p>
@@ -155,7 +155,7 @@ export default function SearchView() {
                     aria-label="Plataforma"
                     value={selectedPlatform}
                     onChange={(e) => setPlatformByGame(prev => ({ ...prev, [game.igdb_id]: e.target.value }))}
-                    className="w-full bg-[#1e2330] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655]"
+                    className="w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
                   >
                     {PLATFORMS.map(p => (
                       <option key={p.value} value={p.value}>{p.label}</option>

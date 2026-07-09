@@ -88,10 +88,10 @@ export default function Dashboard() {
     return true
   })
 
-  const selectClass = "w-full bg-[#1e2330] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655]"
+  const selectClass = "w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
 
   return (
-    <div className="min-h-screen bg-[#0b0d12] text-white p-6 font-sans">
+    <div className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
       <div className="max-w-7xl mx-auto">
 
         <div className="mb-6">
@@ -108,8 +108,8 @@ export default function Dashboard() {
               onClick={() => setStatusFilter(tab.value)}
               className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
                 statusFilter === tab.value
-                  ? 'bg-[#ff4655] text-white shadow-md'
-                  : 'bg-[#11141b] border border-gray-800 text-gray-400 hover:border-[#ff4655] hover:text-[#ff4655]'
+                  ? 'bg-[var(--accent)] text-[var(--ink)] shadow-md'
+                  : 'bg-[var(--surface)] border border-gray-800 text-gray-400 hover:border-[var(--accent)] hover:text-[var(--accent)]'
               }`}
             >
               {tab.label}
@@ -124,22 +124,22 @@ export default function Dashboard() {
             placeholder="BUSCAR EN LA BIBLIOTECA..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-xl bg-white text-black font-semibold placeholder-gray-500 px-4 py-3 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-[#ff4655] tracking-wide text-sm"
+            className="w-full max-w-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--text)] font-medium placeholder-[var(--muted)] px-4 py-3 rounded focus:outline-none focus:border-[var(--accent)] tracking-wide text-sm"
           />
         </div>
 
         {/* Filtros de duración y orden */}
-        <div className="flex flex-wrap gap-4 items-center mb-8 bg-[#11141b] p-4 rounded-lg border border-gray-800">
+        <div className="flex flex-wrap gap-4 items-center mb-8 bg-[var(--surface)] p-4 rounded-lg border border-gray-800">
           <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Filter By:</span>
           <select value={filterDuration} onChange={(e) => setFilterDuration(e.target.value)}
-            className="bg-[#1e2330] border border-gray-700 text-gray-300 text-xs font-bold rounded px-3 py-1.5 focus:outline-none focus:border-[#ff4655]">
+            className="bg-[var(--surface-2)] border border-gray-700 text-gray-300 text-xs font-bold rounded px-3 py-1.5 focus:outline-none focus:border-[var(--accent)]">
             <option value="all">DURATION (ALL)</option>
             <option value="short">SHORT (0-10 HS)</option>
             <option value="medium">MEDIUM (10-20 HS)</option>
             <option value="long">LONG (+20 HS)</option>
           </select>
           <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}
-            className="ml-auto bg-[#1e2330] border border-gray-700 text-gray-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded transition-colors uppercase tracking-wider focus:outline-none focus:border-[#ff4655]">
+            className="ml-auto bg-[var(--surface-2)] border border-gray-700 text-gray-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded transition-colors uppercase tracking-wider focus:outline-none focus:border-[var(--accent)]">
             <option value="duration_asc">Sort by: Duration ↑</option>
             <option value="duration_desc">Sort by: Duration ↓</option>
             <option value="value_asc">Sort by: Value ($/h) ⚡</option>
@@ -150,12 +150,12 @@ export default function Dashboard() {
         {loading && <div className="text-center py-20 text-gray-500 font-bold">Cargando biblioteca...</div>}
 
         {error && (
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-[#0b0d12]">
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-[var(--ink)]">
             <div className="text-4xl mb-4">📡</div>
             <h3 className="text-xl font-bold text-white mb-2">Sincronización pausada</h3>
             <p className="text-gray-400 max-w-sm mb-6">{error.message || error}</p>
             <button onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-[#ff4655] hover:bg-[#d63b46] text-white font-medium rounded transition">
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-[var(--ink)] font-medium rounded transition">
               Reintentar conexión
             </button>
           </div>

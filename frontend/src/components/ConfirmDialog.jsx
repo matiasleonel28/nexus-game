@@ -28,7 +28,7 @@ export default function ConfirmDialog({
       onClick={busy ? undefined : onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-lg border border-gray-800 bg-[#11141b] p-6 shadow-2xl"
+        className="w-full max-w-sm rounded-lg border border-gray-800 bg-[var(--surface)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3 mb-3">
@@ -45,7 +45,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider border border-gray-700 bg-[#1e2330] text-gray-300 hover:border-[#ff4655] hover:text-[#ff4655] transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider border border-gray-700 bg-[var(--surface-2)] text-gray-300 hover:border-[var(--accent)] hover:text-[var(--accent)] transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {cancelLabel}
           </button>
@@ -53,7 +53,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#ff4655] text-white hover:bg-red-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[var(--danger)] text-white hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {busy ? 'Eliminando…' : confirmLabel}
           </button>

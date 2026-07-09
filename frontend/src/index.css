@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+/* ---- Nexus design tokens (dirección "ledger del jugador exigente") ---- */
+:root {
+  --ink:            #0e1114;   /* fondo base */
+  --surface:        #161a20;   /* tarjetas / paneles */
+  --surface-2:      #1e242d;   /* inputs / badges */
+  --surface-3:      #12161b;   /* paneles anidados */
+  --line:           #272e39;   /* divisores hairline */
+  --text:           #ece7dc;   /* off-white cálido */
+  --muted:          #8b93a1;   /* texto secundario */
+  --accent:         #e0b13c;   /* ámbar/oro: "vale la pena" */
+  --accent-strong:  #f0c250;
+  --positive:       #5ecf92;   /* oferta / bajo objetivo */
+  --danger:         #e0555b;   /* solo acciones destructivas */
+
+  --font-ui:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-num: "Space Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+html { background: var(--ink); }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Firma: datos numéricos en mono tabular */
+.font-num {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Foco visible y accesible en toda la app */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
