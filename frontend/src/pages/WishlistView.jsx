@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getWishlist, updateStatus, deleteGame } from '../api/games'
+import { getWishlist, updateStatus, deleteGame, updateGame } from '../api/games'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
+import { STORES, formatPrice } from '../constants'
 
 export default function WishlistView() {
   const [games, setGames] = useState([])
@@ -9,8 +10,37 @@ export default function WishlistView() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [actioning, setActioning] = useState([])
+  const [drafts, setDrafts] = useState({})   // id -> { store, target }
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
+
+  const draftFor = (game) => drafts[game.id] ?? {
+    store: game.watch_store || 'steam',
+    target: game.target_price ?? '',
+  }
+
+  const setDraft = (id, patch) =>
+    setDrafts(prev => ({ ...prev, [id]: { ...(prev[id] ?? {}), ...patch } }))
+
+  const handleWatch = async (game) => {
+    const d = draftFor(game)
+    const target = parseFloat(d.target)
+    if (Number.isNaN(target) || target <= 0) {
+      setError({ message: 'Ingresá un precio objetivo válido (ej: 5000).' })
+      return
+    }
+    setError(null); setSuccess(null)
+    setActioning(prev => [...prev, `watch-${game.id}`])
+    try {
+      await updateGame(game.id, { target_price: target, watch_store: d.store })
+      setSuccess(`Vigilando "${game.title}" en ${d.store} ≤ ${formatPrice(target)}.`)
+      await fetchWishlist({ current: true })
+    } catch (err) {
+      setError(err)
+    } finally {
+      setActioning(prev => prev.filter(k => k !== `watch-${game.id}`))
+    }
+  }
 
   const fetchWishlist = useCallback(async (signal = { current: true }) => {
     if (!signal.current) return
@@ -115,11 +145,50 @@ export default function WishlistView() {
             {games.map(game => {
               const isMoving = actioning.includes(`move-${game.id}`)
               const isDeleting = actioning.includes(`delete-${game.id}`)
+              const isWatching = actioning.includes(`watch-${game.id}`)
+              const d = draftFor(game)
+
+              const watchControls = (
+                <div className="mt-3 rounded border border-gray-800 bg-[#0f1218] p-2">
+                  {game.target_price != null && (
+                    <p className="text-[10px] text-[#ff4655] font-bold uppercase tracking-wider mb-1.5">
+                      🎯 Vigilando {game.watch_store || 'steam'} ≤ {formatPrice(game.target_price)}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      aria-label="Tienda a vigilar"
+                      value={d.store}
+                      onChange={(e) => setDraft(game.id, { store: e.target.value })}
+                      className="bg-[#1e2330] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655]"
+                    >
+                      {STORES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                    </select>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Precio objetivo"
+                      value={d.target}
+                      onChange={(e) => setDraft(game.id, { target: e.target.value })}
+                      className="bg-[#1e2330] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655] placeholder-gray-600"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleWatch(game)}
+                    disabled={isWatching}
+                    className="w-full mt-2 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-[#ff4655]/50 bg-[#ff4655]/10 text-[#ff4655] hover:bg-[#ff4655] hover:text-white transition disabled:opacity-60"
+                  >
+                    {isWatching ? 'Guardando...' : (game.target_price != null ? 'Actualizar vigilancia' : 'Vigilar precio')}
+                  </button>
+                </div>
+              )
 
               return (
                 <GameCard
                   key={game.id}
                   game={game}
+                  controls={watchControls}
                   actions={[
                     {
                       label: isMoving ? 'Moviendo...' : 'Mover a Biblioteca',

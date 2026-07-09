@@ -168,6 +168,10 @@ def update_game(
         game.status = body.status
     if body.owned_platform is not None:
         game.owned_platform = body.owned_platform
+    if body.target_price is not None:
+        game.target_price = body.target_price
+    if body.watch_store is not None:
+        game.watch_store = body.watch_store
     db.commit()
     return _to_response(game)
 
@@ -197,6 +201,8 @@ def _to_response(game: Game) -> GameResponse:
         platforms=                [p.platform_name for p in game.platforms],
         status=                   game.status,
         owned_platform=           game.owned_platform,
+        target_price=             game.target_price,
+        watch_store=              game.watch_store,
         hltb_main_hours=          game.hltb_main_hours,
         hltb_completionist_hours= game.hltb_completionist_hours,
         current_price=            price.current_price if price else None,

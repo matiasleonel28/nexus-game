@@ -6,9 +6,13 @@ una vez verificado que ITAD devuelve datos reales en ARS, se construyen los
 "price watches" y las alertas.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from database import get_db
 from routers.auth import get_current_user
-from models import User
+from models import User, Alert
+from schemas import AlertResponse
 from services import itad
+from services.watches import evaluate_watches
 
 router = APIRouter()
 
@@ -30,3 +34,45 @@ async def hunter_raw(title: str, current_user: User = Depends(get_current_user))
         return await itad.get_raw(title)
     except itad.ITADError as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.post("/hunter/evaluate")
+async def hunter_evaluate(db: Session = Depends(get_db),
+                          current_user: User = Depends(get_current_user)):
+    """Revisa ahora todos los juegos vigilados y dispara alertas nuevas."""
+    created = await evaluate_watches(db)
+    return {"nuevas_alertas": len(created)}
+
+
+@router.get("/hunter/alerts", response_model=list[AlertResponse])
+def hunter_alerts(unread: bool = False,
+                  db: Session = Depends(get_db),
+                  current_user: User = Depends(get_current_user)):
+    """Feed de alertas disparadas (más recientes primero)."""
+    q = db.query(Alert).filter(Alert.user_id == current_user.id)
+    if unread:
+        q = q.filter(Alert.is_read == False)   # noqa: E712
+    alerts = q.order_by(Alert.triggered_at.desc()).all()
+    return [
+        AlertResponse(
+            id=a.id, game_id=a.game_id,
+            title=a.game.title if a.game else "(juego eliminado)",
+            store=a.store, type=a.type, price=a.price,
+            is_read=a.is_read, triggered_at=a.triggered_at,
+        )
+        for a in alerts
+    ]
+
+
+@router.post("/hunter/alerts/{alert_id}/read")
+def hunter_alert_read(alert_id: int,
+                      db: Session = Depends(get_db),
+                      current_user: User = Depends(get_current_user)):
+    """Marca una alerta como leída."""
+    alert = db.query(Alert).filter(Alert.id == alert_id,
+                                   Alert.user_id == current_user.id).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+    alert.is_read = True
+    db.commit()
+    return {"ok": True}

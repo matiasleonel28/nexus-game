@@ -1,7 +1,9 @@
+import asyncio
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from database import SessionLocal
 from models import Game
+from services.watches import evaluate_watches
 
 def check_releases():
     """
@@ -30,6 +32,17 @@ def check_releases():
         db.close()
 
 
+def check_price_watches():
+    """Corre a diario: evalúa los juegos vigilados y dispara alertas de precio."""
+    db = SessionLocal()
+    try:
+        created = asyncio.run(evaluate_watches(db))
+        if created:
+            print(f"🔔 Hunter: {len(created)} alerta(s) de precio nueva(s)")
+    finally:
+        db.close()
+
+
 def start_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(
@@ -39,5 +52,12 @@ def start_scheduler():
         minute=0,
         id="release_checker"
     )
+    scheduler.add_job(
+        check_price_watches,
+        trigger="cron",
+        hour=3,
+        minute=0,
+        id="price_watcher"
+    )
     scheduler.start()
-    print("✅ Scheduler iniciado — revisando lanzamientos todos los días a las 9am")
+    print("✅ Scheduler iniciado — lanzamientos (9am) y precios del Hunter (3am)")

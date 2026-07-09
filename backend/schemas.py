@@ -20,6 +20,8 @@ class AddGameRequest(BaseModel):
 class UpdateStatusRequest(BaseModel):
     status: Optional[str] = None            # pendiente | jugando | completado | abandonado | wishlist
     owned_platform: Optional[str] = None    # pc | switch2 | xbox | ps5
+    target_price: Optional[float] = None    # precio objetivo del Hunter
+    watch_store: Optional[str] = None       # steam | eshop | xbox
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -30,6 +32,8 @@ class GameResponse(BaseModel):
     platforms:                list[str]
     status:                   str
     owned_platform:           Optional[str] = None
+    target_price:             Optional[float] = None
+    watch_store:              Optional[str] = None
     hltb_main_hours:          Optional[float]
     hltb_completionist_hours: Optional[float]
     current_price:            Optional[float]
@@ -53,3 +57,17 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# --- Hunter ---
+class AlertResponse(BaseModel):
+    id:           int
+    game_id:      int
+    title:        str
+    store:        str
+    type:         str          # target_reached | historical_low
+    price:        Optional[float]
+    is_read:      bool
+    triggered_at: datetime
+
+    class Config:
+        from_attributes = True

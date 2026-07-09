@@ -28,6 +28,12 @@ Ese flujo vertical ya funciona hoy.
   nada). Endpoints: `GET /api/hunter/prices?title=` y `/api/hunter/raw?title=`
   (diagnóstico). Los precios del backlog viejo aún vienen de CheapShark hasta
   migrar ese flujo a ITAD.
+- Monitor de precios: los juegos tienen `target_price` + `watch_store`; el job
+  `check_price_watches` (scheduler, 3am) y `POST /api/hunter/evaluate` (manual)
+  evalúan y generan alertas (`target_reached` / `historical_low`, sin duplicar).
+  Alertas: `GET /api/hunter/alerts`, `POST /api/hunter/alerts/{id}/read`. En el
+  front: se vigila desde la Wishlist (precio objetivo + tienda) y se ven en
+  `/alertas`. Motor en `services/watches.py`.
 - No es app Tauri todavía (corre como web local). Tauri está en la spec.
 - Sin bot de Telegram, sin push, sin sync multi-dispositivo, sin IA.
 - Sin precios de PS5.

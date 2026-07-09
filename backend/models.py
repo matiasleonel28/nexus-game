@@ -32,6 +32,10 @@ class Game(Base):
     has_coop                = Column(Boolean, default=False)
     has_splitscreen         = Column(Boolean, default=False)
 
+    # --- Hunter (monitor de precios) ---
+    target_price            = Column(Float)    # precio objetivo para alertar
+    watch_store             = Column(String)   # tienda vigilada: steam | eshop | xbox
+
     created_at              = Column(DateTime, default=datetime.utcnow)
 
     owner     = relationship("User", back_populates="games")
@@ -49,6 +53,21 @@ class Platform(Base):
     platform_name = Column(String)   # 'PC', 'PS5', 'Switch', etc.
 
     game = relationship("Game", back_populates="platforms")
+
+
+class Alert(Base):
+    __tablename__ = "alerts"
+
+    id           = Column(Integer, primary_key=True)
+    user_id      = Column(Integer, ForeignKey("users.id"))
+    game_id      = Column(Integer, ForeignKey("games.id"))
+    store        = Column(String)    # steam | eshop | xbox
+    type         = Column(String)    # target_reached | historical_low
+    price        = Column(Float)     # precio al momento de disparar la alerta
+    is_read      = Column(Boolean, default=False)
+    triggered_at = Column(DateTime, default=datetime.utcnow)
+
+    game = relationship("Game")
 
 
 class Price(Base):
