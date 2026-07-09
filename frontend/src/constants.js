@@ -1,6 +1,8 @@
 // Plataformas propias (tu copia del juego), distintas de las de IGDB
 export const PLATFORMS = [
   { value: 'pc', label: 'PC / Steam' },
+  { value: 'pc_xbox', label: 'PC / Xbox' },
+  { value: 'pc_other', label: 'PC / Otro (Epic, GOG…)' },
   { value: 'switch2', label: 'Switch 2' },
   { value: 'xbox', label: 'Xbox' },
   { value: 'ps5', label: 'PS5' },

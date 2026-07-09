@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getBacklog, updateGame } from '../api/games'
+import { getBacklog, updateGame, deleteGame } from '../api/games'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { LIBRARY_STATUSES, PLATFORMS } from '../constants'
@@ -51,6 +51,21 @@ export default function Dashboard() {
     setError(null)
     try {
       await updateGame(game.id, patch)
+      await fetchBacklog()
+    } catch (err) {
+      setError(err)
+    } finally {
+      setActioning(prev => prev.filter(k => k !== key))
+    }
+  }
+
+  const handleDelete = async (game) => {
+    if (!window.confirm(`¿Eliminar "${game.title}" de tu biblioteca? Esta acción no se puede deshacer.`)) return
+    const key = `del-${game.id}`
+    setActioning(prev => [...prev, key])
+    setError(null)
+    try {
+      await deleteGame(game.id)
       await fetchBacklog()
     } catch (err) {
       setError(err)
@@ -172,7 +187,22 @@ export default function Dashboard() {
                   </select>
                 </div>
               )
-              return <GameCard key={game.id} game={game} controls={controls} />
+              const deleting = actioning.includes(`del-${game.id}`)
+              return (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  controls={controls}
+                  actions={[
+                    {
+                      label: deleting ? 'Eliminando...' : 'Eliminar',
+                      onClick: () => handleDelete(game),
+                      disabled: deleting || busy,
+                      variant: 'danger',
+                    },
+                  ]}
+                />
+              )
             })}
           </div>
         )}
