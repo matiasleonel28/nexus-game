@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { searchGames, addToBacklog, addToWishlist } from '../api/games'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
+import { PLATFORMS } from '../constants'
 
 export default function SearchView() {
   const [query, setQuery] = useState('')
@@ -11,6 +12,7 @@ export default function SearchView() {
   const [success, setSuccess] = useState(null)
   const [hasSearched, setHasSearched] = useState(false)
   const [adding, setAdding] = useState(new Set())
+  const [platformByGame, setPlatformByGame] = useState({})   // igdb_id -> plataforma elegida
 
   const { refreshBacklog, refreshWishlist } = useGameRefresh()
 
@@ -51,9 +53,9 @@ export default function SearchView() {
 
     try {
       if (target === 'backlog') {
-        await addToBacklog(igdbId)
+        await addToBacklog(igdbId, platformByGame[igdbId] ?? 'pc')
         refreshBacklog()
-        setSuccess('¡Juego añadido a tu Backlog exitosamente!')
+        setSuccess('¡Juego añadido a tu Biblioteca exitosamente!')
       } else {
         await addToWishlist(igdbId)
         refreshWishlist()
@@ -143,13 +145,32 @@ export default function SearchView() {
               const isAddingBacklog = adding.has(`backlog-${game.igdb_id}`)
               const isAddingWishlist = adding.has(`wishlist-${game.igdb_id}`)
 
+              const selectedPlatform = platformByGame[game.igdb_id] ?? 'pc'
+              const platformPicker = (
+                <div className="mt-3">
+                  <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                    ¿En qué plataforma lo tenés/jugás?
+                  </label>
+                  <select
+                    aria-label="Plataforma"
+                    value={selectedPlatform}
+                    onChange={(e) => setPlatformByGame(prev => ({ ...prev, [game.igdb_id]: e.target.value }))}
+                    className="w-full bg-[#1e2330] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655]"
+                  >
+                    {PLATFORMS.map(p => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )
               return (
                 <GameCard
                   key={game.igdb_id}
                   game={game}
+                  controls={platformPicker}
                   actions={[
                     {
-                      label: isAddingBacklog ? 'Guardando...' : 'Añadir Backlog',
+                      label: isAddingBacklog ? 'Guardando...' : 'Añadir a Biblioteca',
                       onClick: () => handleAdd(game.igdb_id, 'backlog'),
                       disabled: isAddingBacklog || isAddingWishlist,
                       variant: 'primary',

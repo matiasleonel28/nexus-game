@@ -49,8 +49,8 @@ export default function WishlistView() {
     setActioning(prev => [...prev, `move-${id}`])
 
     try {
-      await updateStatus(id, 'backlog')
-      setSuccess('Juego movido al backlog.')
+      await updateStatus(id, 'pendiente')
+      setSuccess('Juego movido a tu biblioteca (Pendiente).')
       refreshBacklog()
       await fetchWishlist({ current: true })
     } catch (err) {
@@ -122,7 +122,7 @@ export default function WishlistView() {
                   game={game}
                   actions={[
                     {
-                      label: isMoving ? 'Moviendo...' : 'Mover al backlog',
+                      label: isMoving ? 'Moviendo...' : 'Mover a Biblioteca',
                       onClick: () => handleMoveToBacklog(game.id),
                       disabled: isMoving,
                     },

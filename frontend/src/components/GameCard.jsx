@@ -9,7 +9,9 @@ function getButtonClass(variant = 'primary') {
   return `${base} bg-[#ff4655] text-white hover:bg-red-600`
 }
 
-export default function GameCard({ game, actions = [] }) {
+import { platformLabel } from '../constants'
+
+export default function GameCard({ game, actions = [], controls = null }) {
   const getHighResCover = (url) => {
     if (!url) return "https://via.placeholder.com/264x352?text=No+Cover";
     const cleanUrl = url.startsWith('//') ? `https:${url}` : url;
@@ -17,6 +19,7 @@ export default function GameCard({ game, actions = [] }) {
   };
 
   const isSearch = !game.status;
+  const ownedLabel = platformLabel(game.owned_platform);
 
   return (
     <div className="flex flex-col bg-[#11141b] border border-gray-800 rounded-lg overflow-hidden hover:border-[#ff4655] transition-all duration-300 shadow-xl group">
@@ -44,7 +47,22 @@ export default function GameCard({ game, actions = [] }) {
           <h3 className="text-white font-bold text-base line-clamp-1 group-hover:text-[#ff4655] transition-colors" title={game.title}>
             {game.title}
           </h3>
-          
+
+          {/* Badge de TU plataforma (distinta de las de IGDB de abajo) */}
+          {!isSearch && (
+            <div className="mt-1.5">
+              {ownedLabel ? (
+                <span className="inline-block bg-[#ff4655]/15 text-[#ff4655] border border-[#ff4655]/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                  🎮 {ownedLabel}
+                </span>
+              ) : (
+                <span className="inline-block bg-[#1e2330] text-gray-500 border border-gray-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                  Sin plataforma
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Sección HLTB */}
           {!isSearch && (
             <div className="mt-3 flex justify-between items-end">
@@ -95,6 +113,9 @@ export default function GameCard({ game, actions = [] }) {
               </div>
             )}
           </div>
+
+          {/* Controles (selectores de estado/plataforma) */}
+          {controls}
 
           {/* Botones de acción (dinámicos según la vista) */}
           {actions.length > 0 && (

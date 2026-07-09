@@ -22,8 +22,9 @@ class Game(Base):
     title                   = Column(String, nullable=False)
     cover_url               = Column(String)          # URL cruda de IGDB
     release_date            = Column(DateTime)
-    status                  = Column(String, default="backlog")
-    # backlog | wishlist | finished | waiting_sale
+    status                  = Column(String, default="pendiente")
+    # wishlist | pendiente | jugando | completado | abandonado
+    owned_platform          = Column(String)   # tu copia: pc | switch2 | xbox | ps5
 
     hltb_main_hours         = Column(Float)           # duración historia principal
     hltb_completionist_hours = Column(Float)          # duración 100%

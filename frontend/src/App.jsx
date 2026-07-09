@@ -7,7 +7,7 @@ import NotFound from './pages/NotFound'
 import { GameRefreshProvider } from './context/GameRefreshContext'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Backlog' },
+  { path: '/', label: 'Biblioteca' },
   { path: '/search', label: 'Buscar' },
   { path: '/wishlist', label: 'Wishlist' },
 ]

@@ -14,10 +14,12 @@ class SearchResult(BaseModel):
 # Lo que se manda para agregar un juego
 class AddGameRequest(BaseModel):
     igdb_id: int
+    owned_platform: Optional[str] = None   # pc | switch2 | xbox | ps5
 
-# Lo que se manda para cambiar estado
+# Lo que se manda para editar un juego (todo opcional: se actualiza lo que venga)
 class UpdateStatusRequest(BaseModel):
-    status: str   # 'backlog' | 'wishlist' | 'finished' | 'waiting_sale'
+    status: Optional[str] = None            # pendiente | jugando | completado | abandonado | wishlist
+    owned_platform: Optional[str] = None    # pc | switch2 | xbox | ps5
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -27,6 +29,7 @@ class GameResponse(BaseModel):
     cover_url:                Optional[str]
     platforms:                list[str]
     status:                   str
+    owned_platform:           Optional[str] = None
     hltb_main_hours:          Optional[float]
     hltb_completionist_hours: Optional[float]
     current_price:            Optional[float]

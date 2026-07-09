@@ -15,19 +15,31 @@ from routers.auth import get_current_user
 
 router = APIRouter()
 
+# Estados de la biblioteca (juegos que tenés), separados de la wishlist.
+LIBRARY_STATUSES = ["pendiente", "jugando", "completado", "abandonado"]
+
 @router.get("/backlog", response_model=list[GameResponse])
 def get_backlog(
-    sort:    str  = "duration_asc",
-    coop:    bool = False,
-    db:      Session = Depends(get_db),
+    sort:     str  = "duration_asc",
+    coop:     bool = False,
+    status:   str | None = None,   # filtra por un estado puntual (pendiente/jugando/...)
+    platform: str | None = None,   # filtra por plataforma propia (pc/switch2/xbox/ps5)
+    db:       Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Devuelve los juegos en backlog.
-    El ordenamiento lo hace el backend, no el frontend.
+    Devuelve los juegos de tu biblioteca (todos los estados salvo wishlist).
+    El ordenamiento y el filtrado los hace el backend, no el frontend.
     """
-    query = db.query(Game).filter(Game.status == "backlog", Game.user_id == current_user.id)
+    query = db.query(Game).filter(
+        Game.user_id == current_user.id,
+        Game.status.in_(LIBRARY_STATUSES),
+    )
 
+    if status:
+        query = query.filter(Game.status == status)
+    if platform:
+        query = query.filter(Game.owned_platform == platform)
     if coop:
         query = query.filter(Game.has_coop == True)
 
@@ -50,12 +62,15 @@ def get_backlog(
     return [_to_response(g) for g in games]
 
 
-async def _add_game_to_db(igdb_id: int, status: str, db: Session, current_user: User) -> Game:
+async def _add_game_to_db(igdb_id: int, status: str, db: Session, current_user: User,
+                          owned_platform: str | None = None) -> Game:
     """Función compartida interna para agregar juegos en un estado específico"""
-    # Si ya existe en DB, solo cambia el estado
+    # Si ya existe en DB, solo cambia el estado (y la plataforma si vino)
     existing = db.query(Game).filter(Game.igdb_id == igdb_id, Game.user_id == current_user.id).first()
     if existing:
         existing.status = status
+        if owned_platform is not None:
+            existing.owned_platform = owned_platform
         db.commit()
         return existing
 
@@ -102,6 +117,7 @@ async def _add_game_to_db(igdb_id: int, status: str, db: Session, current_user: 
         user_id=                  current_user.id,
         title=                    g["name"],
         cover_url=                g.get("cover", {}).get("url"),
+        owned_platform=           owned_platform,
         has_coop=                 False,
         hltb_main_hours=          duration["main"],
         hltb_completionist_hours= duration["completionist"],
@@ -128,24 +144,30 @@ async def _add_game_to_db(igdb_id: int, status: str, db: Session, current_user: 
 
 @router.post("/backlog", response_model=GameResponse)
 async def add_to_backlog(
-    body: AddGameRequest, 
+    body: AddGameRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    game = await _add_game_to_db(body.igdb_id, "backlog", db, current_user)
+    # Al agregar a la biblioteca el estado inicial es "pendiente"
+    game = await _add_game_to_db(body.igdb_id, "pendiente", db, current_user,
+                                 owned_platform=body.owned_platform)
     return _to_response(game)
 
 @router.patch("/games/{game_id}", response_model=GameResponse)
-def update_status(
-    game_id: int, 
-    body: UpdateStatusRequest, 
+def update_game(
+    game_id: int,
+    body: UpdateStatusRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     game = db.query(Game).filter(Game.id == game_id, Game.user_id == current_user.id).first()
     if not game:
         raise HTTPException(status_code=404, detail="Juego no encontrado")
-    game.status = body.status
+    # Se actualiza solo lo que venga en el body
+    if body.status is not None:
+        game.status = body.status
+    if body.owned_platform is not None:
+        game.owned_platform = body.owned_platform
     db.commit()
     return _to_response(game)
 
@@ -174,6 +196,7 @@ def _to_response(game: Game) -> GameResponse:
         cover_url=                game.cover_url,
         platforms=                [p.platform_name for p in game.platforms],
         status=                   game.status,
+        owned_platform=           game.owned_platform,
         hltb_main_hours=          game.hltb_main_hours,
         hltb_completionist_hours= game.hltb_completionist_hours,
         current_price=            price.current_price if price else None,
