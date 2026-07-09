@@ -82,9 +82,14 @@ async def get_prices(title: str) -> dict:
     """
     Precio actual + mínimo histórico por tienda (steam/eshop/xbox), en ARS.
 
+    Cada oferta de ITAD ya trae `storeLow` (mínimo histórico en esa tienda)
+    inline, así que alcanza con una sola llamada. Si hay varias ofertas para la
+    misma tienda, nos quedamos con la más barata.
+
     Devuelve:
     {
-      "steam": {"current": 1234.5, "lowest": 999.0, "cut": 50, "currency": "ARS", "url": "..."},
+      "steam": {"current": 3705.37, "lowest": 3472.8, "cut": 50,
+                "regular": 7425.62, "currency": "ARS", "url": "..."},
       "eshop": {...},
       "xbox":  {...},
     }
@@ -96,30 +101,31 @@ async def get_prices(title: str) -> dict:
         return {}
 
     deals = await _prices_by_id(game_id)
-    lows  = await _history_lows_by_id(game_id)
-
     result: dict = {}
 
     for d in deals:
         key = _store_key(d.get("shop", {}).get("name", ""))
         if not key:
             continue
-        price = d.get("price", {}) or {}
-        result[key] = {
-            "current":  price.get("amount"),
+        price      = d.get("price") or {}
+        store_low  = d.get("storeLow") or {}
+        regular    = d.get("regular") or {}
+        current    = price.get("amount")
+
+        entry = {
+            "current":  current,
             "currency": price.get("currency", "ARS"),
             "cut":      d.get("cut"),
+            "regular":  regular.get("amount"),
+            "lowest":   store_low.get("amount"),
             "url":      d.get("url"),
-            "lowest":   None,
         }
 
-    for low in lows:
-        key = _store_key(low.get("shop", {}).get("name", ""))
-        if not key:
-            continue
-        low_price = low.get("low", {}) or {}
-        result.setdefault(key, {"current": None, "currency": low_price.get("currency", "ARS")})
-        result[key]["lowest"] = low_price.get("amount")
+        # si ya hay una oferta para esta tienda, quedarse con la más barata
+        prev = result.get(key)
+        if prev is None or (current is not None and prev.get("current") is not None
+                            and current < prev["current"]):
+            result[key] = entry
 
     return result
 

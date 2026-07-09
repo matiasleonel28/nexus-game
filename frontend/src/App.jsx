@@ -3,6 +3,7 @@ import './App.css'
 import Dashboard from './pages/Dashboard'
 import SearchView from './pages/SearchView'
 import WishlistView from './pages/WishlistView'
+import HunterView from './pages/HunterView'
 import NotFound from './pages/NotFound'
 import { GameRefreshProvider } from './context/GameRefreshContext'
 
@@ -10,6 +11,7 @@ const NAV_ITEMS = [
   { path: '/', label: 'Biblioteca' },
   { path: '/search', label: 'Buscar' },
   { path: '/wishlist', label: 'Wishlist' },
+  { path: '/hunter', label: 'Hunter' },
 ]
 
 export default function App() {
@@ -49,6 +51,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/search" element={<SearchView />} />
             <Route path="/wishlist" element={<WishlistView />} />
+            <Route path="/hunter" element={<HunterView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

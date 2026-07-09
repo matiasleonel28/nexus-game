@@ -16,5 +16,22 @@ export const LIBRARY_STATUSES = [
   { value: 'abandonado', label: 'Abandonado' },
 ]
 
+// Tiendas del módulo Hunter (PS5 queda afuera a propósito)
+export const STORES = [
+  { key: 'steam', label: 'Steam' },
+  { key: 'eshop', label: 'Nintendo eShop' },
+  { key: 'xbox', label: 'Xbox Store' },
+]
+
 export const platformLabel = (v) => PLATFORMS.find(p => p.value === v)?.label ?? null
 export const statusLabel = (v) => LIBRARY_STATUSES.find(s => s.value === v)?.label ?? v
+
+// Formatea un monto en la moneda dada (por defecto ARS, locale es-AR)
+export const formatPrice = (amount, currency = 'ARS') => {
+  if (amount == null) return null
+  try {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount)
+  } catch {
+    return `$${Number(amount).toFixed(2)}`
+  }
+}
