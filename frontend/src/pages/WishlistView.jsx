@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getWishlist, updateStatus, deleteGame, updateGame } from '../api/games'
+import { getHunterPrices } from '../api/hunter'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { STORES, formatPrice } from '../constants'
+
+const storeLabel = (key) => STORES.find(s => s.key === key)?.label ?? key
 
 export default function WishlistView() {
   const [games, setGames] = useState([])
@@ -11,6 +14,7 @@ export default function WishlistView() {
   const [success, setSuccess] = useState(null)
   const [actioning, setActioning] = useState([])
   const [drafts, setDrafts] = useState({})   // id -> { store, target }
+  const [prices, setPrices] = useState({})   // id -> { steam:{...}, eshop:{...}, xbox:{...} }
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
 
@@ -50,6 +54,13 @@ export default function WishlistView() {
       const data = await getWishlist()
       if (!signal.current) return
       setGames(data)
+      // Precios ITAD por juego, en paralelo (no bloquean el render de la lista)
+      data.forEach(async (g) => {
+        try {
+          const pr = await getHunterPrices(g.title)
+          if (signal.current) setPrices(prev => ({ ...prev, [g.id]: pr.stores || {} }))
+        } catch { /* precio opcional: si falla, la tarjeta muestra "sin datos" */ }
+      })
     } catch (err) {
       if (signal.current) {
         setError(err)
@@ -147,6 +158,10 @@ export default function WishlistView() {
               const isDeleting = actioning.includes(`delete-${game.id}`)
               const isWatching = actioning.includes(`watch-${game.id}`)
               const d = draftFor(game)
+              const storePrice = prices[game.id]?.[d.store]
+              const hasPrices = prices[game.id] !== undefined
+              const targetNum = parseFloat(d.target)
+              const belowTarget = storePrice?.current != null && !Number.isNaN(targetNum) && targetNum > 0 && storePrice.current <= targetNum
 
               const watchControls = (
                 <div className="mt-3 rounded border border-gray-800 bg-[#0f1218] p-2">
@@ -155,6 +170,25 @@ export default function WishlistView() {
                       🎯 Vigilando {game.watch_store || 'steam'} ≤ {formatPrice(game.target_price)}
                     </p>
                   )}
+
+                  {/* Precio actual ITAD para la tienda seleccionada */}
+                  <div className="flex items-baseline justify-between mb-2">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Ahora en {storeLabel(d.store)}</span>
+                    <span className="text-right">
+                      {storePrice?.current != null ? (
+                        <span className={`text-sm font-black ${belowTarget ? 'text-green-400' : 'text-white'}`}>
+                          {formatPrice(storePrice.current, storePrice.currency)}
+                          {storePrice.cut > 0 && <span className="text-[#ff4655] text-[10px] font-bold ml-1">-{storePrice.cut}%</span>}
+                        </span>
+                      ) : (
+                        <span className="text-gray-600 text-[11px] font-bold">{hasPrices ? 'sin datos' : '…'}</span>
+                      )}
+                    </span>
+                  </div>
+                  {belowTarget && (
+                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-wider mb-2">✓ ¡Por debajo de tu objetivo!</p>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2">
                     <select
                       aria-label="Tienda a vigilar"
