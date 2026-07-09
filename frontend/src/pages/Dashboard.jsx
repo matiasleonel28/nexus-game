@@ -99,22 +99,30 @@ export default function Dashboard() {
           <p className="text-gray-500 text-xs mt-1">Tus juegos por estado y plataforma</p>
         </div>
 
-        {/* Pestañas por estado */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {STATUS_TABS.map(tab => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setStatusFilter(tab.value)}
-              className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
-                statusFilter === tab.value
-                  ? 'bg-[var(--accent)] text-[var(--ink)] shadow-md'
-                  : 'bg-[var(--surface)] border border-gray-800 text-gray-400 hover:border-[var(--accent)] hover:text-[var(--accent)]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Solapas por estado (underline tabs) */}
+        <div className="mb-6 flex gap-6 border-b border-[var(--line)] overflow-x-auto">
+          {STATUS_TABS.map(tab => {
+            const active = statusFilter === tab.value
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setStatusFilter(tab.value)}
+                aria-pressed={active}
+                className={`relative -mb-px whitespace-nowrap px-1 pb-3 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors duration-200 ${
+                  active ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                {tab.label}
+                <span
+                  aria-hidden
+                  className={`absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-[var(--accent)] transition-opacity duration-200 ease-out ${
+                    active ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              </button>
+            )
+          })}
         </div>
 
         {/* Búsqueda */}
