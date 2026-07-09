@@ -34,6 +34,7 @@ class GameResponse(BaseModel):
     owned_platform:           Optional[str] = None
     target_price:             Optional[float] = None
     watch_store:              Optional[str] = None
+    eshop_nsuid:              Optional[str] = None
     hltb_main_hours:          Optional[float]
     hltb_completionist_hours: Optional[float]
     current_price:            Optional[float]

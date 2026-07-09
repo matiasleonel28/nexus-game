@@ -203,6 +203,7 @@ def _to_response(game: Game) -> GameResponse:
         owned_platform=           game.owned_platform,
         target_price=             game.target_price,
         watch_store=              game.watch_store,
+        eshop_nsuid=              game.eshop_nsuid,
         hltb_main_hours=          game.hltb_main_hours,
         hltb_completionist_hours= game.hltb_completionist_hours,
         current_price=            price.current_price if price else None,

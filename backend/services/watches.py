@@ -10,7 +10,7 @@ Evita duplicar: si ya existe una alerta NO leída del mismo juego/tienda/tipo,
 no crea otra.
 """
 from models import Game, Alert
-from services import itad
+from services.prices_hub import get_game_prices
 
 
 async def evaluate_watches(db) -> list[Alert]:
@@ -20,9 +20,9 @@ async def evaluate_watches(db) -> list[Alert]:
     for g in watched:
         store = g.watch_store or "steam"
         try:
-            prices = await itad.get_prices(g.title)
+            prices = await get_game_prices(g)   # steam/xbox (ITAD) + eshop (Nintendo)
         except Exception:
-            continue   # sin key / sin red / juego no encontrado -> se salta
+            continue   # sin red / juego no encontrado -> se salta
 
         p = prices.get(store)
         if not p or p.get("current") is None:

@@ -6,15 +6,22 @@ una vez verificado que ITAD devuelve datos reales en ARS, se construyen los
 "price watches" y las alertas.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
 from routers.auth import get_current_user
-from models import User, Alert
+from models import User, Alert, Game
 from schemas import AlertResponse
-from services import itad
+from services import itad, nintendo
+from services.prices_hub import get_game_prices
 from services.watches import evaluate_watches
 
 router = APIRouter()
+
+
+class ResolveEshopRequest(BaseModel):
+    game_id: int
+    url: str
 
 
 @router.get("/hunter/prices")
@@ -34,6 +41,39 @@ async def hunter_raw(title: str, current_user: User = Depends(get_current_user))
         return await itad.get_raw(title)
     except itad.ITADError as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.get("/hunter/game/{game_id}/prices")
+async def hunter_game_prices(game_id: int,
+                             db: Session = Depends(get_db),
+                             current_user: User = Depends(get_current_user)):
+    """Precios combinados (Steam/Xbox vía ITAD + eShop vía Nintendo) de un juego."""
+    game = db.query(Game).filter(Game.id == game_id,
+                                 Game.user_id == current_user.id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Juego no encontrado")
+    return {"title": game.title, "stores": await get_game_prices(game)}
+
+
+@router.post("/hunter/eshop/resolve")
+async def hunter_eshop_resolve(body: ResolveEshopRequest,
+                               db: Session = Depends(get_db),
+                               current_user: User = Depends(get_current_user)):
+    """Extrae el nsuid del link del eShop US y lo cachea en el juego."""
+    game = db.query(Game).filter(Game.id == body.game_id,
+                                 Game.user_id == current_user.id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Juego no encontrado")
+
+    nsuid = await nintendo.extract_nsuid(body.url)
+    if not nsuid:
+        raise HTTPException(status_code=422,
+                            detail="No pude encontrar el nsuid en esa página. ¿Es un link de un juego del eShop de EE.UU.?")
+
+    game.eshop_nsuid = nsuid
+    db.commit()
+    price = await nintendo.get_eshop_price(nsuid)
+    return {"nsuid": nsuid, "eshop": price}
 
 
 @router.post("/hunter/evaluate")

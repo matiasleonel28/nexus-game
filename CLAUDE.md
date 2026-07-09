@@ -34,6 +34,12 @@ Ese flujo vertical ya funciona hoy.
   Alertas: `GET /api/hunter/alerts`, `POST /api/hunter/alerts/{id}/read`. En el
   front: se vigila desde la Wishlist (precio objetivo + tienda) y se ven en
   `/alertas`. Motor en `services/watches.py`.
+- eShop (Nintendo) integrado aparte de ITAD: `services/nintendo.py` (precio ARS
+  vía api.ec.nintendo.com con `country=AR`) + `services/prices_hub.py` (combina
+  ITAD steam/xbox + Nintendo eshop por juego). El nsuid US se resuelve pegando
+  el link del eShop de EE.UU. (`POST /api/hunter/eshop/resolve`) y se cachea en
+  `games.eshop_nsuid`. Precios combinados: `GET /api/hunter/game/{id}/prices`.
+  Detalle y razones en `specs/05-nintendo-integration.md`.
 - No es app Tauri todavía (corre como web local). Tauri está en la spec.
 - Sin bot de Telegram, sin push, sin sync multi-dispositivo, sin IA.
 - Sin precios de PS5.

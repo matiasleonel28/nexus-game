@@ -35,6 +35,7 @@ class Game(Base):
     # --- Hunter (monitor de precios) ---
     target_price            = Column(Float)    # precio objetivo para alertar
     watch_store             = Column(String)   # tienda vigilada: steam | eshop | xbox
+    eshop_nsuid             = Column(String)   # nsuid US para precios eShop (Nintendo)
 
     created_at              = Column(DateTime, default=datetime.utcnow)
 

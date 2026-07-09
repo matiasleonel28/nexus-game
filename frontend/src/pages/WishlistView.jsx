@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getWishlist, updateStatus, deleteGame, updateGame } from '../api/games'
-import { getHunterPrices } from '../api/hunter'
+import { getGamePrices, resolveEshop } from '../api/hunter'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { STORES, formatPrice } from '../constants'
@@ -15,6 +15,7 @@ export default function WishlistView() {
   const [actioning, setActioning] = useState([])
   const [drafts, setDrafts] = useState({})   // id -> { store, target }
   const [prices, setPrices] = useState({})   // id -> { steam:{...}, eshop:{...}, xbox:{...} }
+  const [eshopLinks, setEshopLinks] = useState({})   // id -> url del eShop US
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
 
@@ -54,10 +55,10 @@ export default function WishlistView() {
       const data = await getWishlist()
       if (!signal.current) return
       setGames(data)
-      // Precios ITAD por juego, en paralelo (no bloquean el render de la lista)
+      // Precios combinados por juego (Steam/Xbox ITAD + eShop Nintendo), en paralelo
       data.forEach(async (g) => {
         try {
-          const pr = await getHunterPrices(g.title)
+          const pr = await getGamePrices(g.id)
           if (signal.current) setPrices(prev => ({ ...prev, [g.id]: pr.stores || {} }))
         } catch { /* precio opcional: si falla, la tarjeta muestra "sin datos" */ }
       })
@@ -98,6 +99,25 @@ export default function WishlistView() {
       setError(err)
     } finally {
       setActioning(prev => prev.filter(key => key !== `move-${id}`))
+    }
+  }
+
+  const handleResolveEshop = async (game) => {
+    const url = (eshopLinks[game.id] || '').trim()
+    if (!url) { setError({ message: 'Pegá el link del juego en el eShop de EE.UU.' }); return }
+    setError(null); setSuccess(null)
+    setActioning(prev => [...prev, `eshop-${game.id}`])
+    try {
+      const res = await resolveEshop(game.id, url)
+      if (res?.eshop) {
+        setPrices(prev => ({ ...prev, [game.id]: { ...(prev[game.id] || {}), eshop: res.eshop } }))
+      }
+      setSuccess(`eShop vinculado a "${game.title}".`)
+      await fetchWishlist({ current: true })
+    } catch (err) {
+      setError(err)
+    } finally {
+      setActioning(prev => prev.filter(k => k !== `eshop-${game.id}`))
     }
   }
 
@@ -157,6 +177,7 @@ export default function WishlistView() {
               const isMoving = actioning.includes(`move-${game.id}`)
               const isDeleting = actioning.includes(`delete-${game.id}`)
               const isWatching = actioning.includes(`watch-${game.id}`)
+              const eshopResolving = actioning.includes(`eshop-${game.id}`)
               const d = draftFor(game)
               const storePrice = prices[game.id]?.[d.store]
               const hasPrices = prices[game.id] !== undefined
@@ -187,6 +208,28 @@ export default function WishlistView() {
                   </div>
                   {belowTarget && (
                     <p className="text-[10px] text-green-400 font-bold uppercase tracking-wider mb-2">✓ ¡Por debajo de tu objetivo!</p>
+                  )}
+
+                  {/* Vincular eShop: solo si mirás eShop y el juego no tiene nsuid aún */}
+                  {d.store === 'eshop' && !game.eshop_nsuid && (
+                    <div className="mb-2 border-t border-gray-800 pt-2">
+                      <p className="text-[10px] text-gray-500 mb-1">Pegá el link del juego en el <span className="text-gray-300">eShop de EE.UU.</span> para traer su precio:</p>
+                      <input
+                        type="text"
+                        placeholder="https://www.nintendo.com/us/store/products/..."
+                        value={eshopLinks[game.id] || ''}
+                        onChange={(e) => setEshopLinks(prev => ({ ...prev, [game.id]: e.target.value }))}
+                        className="w-full bg-[#1e2330] border border-gray-700 text-gray-200 text-[10px] rounded px-2 py-1.5 focus:outline-none focus:border-[#ff4655] placeholder-gray-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleResolveEshop(game)}
+                        disabled={eshopResolving}
+                        className="w-full mt-1.5 rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-gray-700 bg-[#1e2330] text-gray-300 hover:border-[#ff4655] hover:text-[#ff4655] transition disabled:opacity-60"
+                      >
+                        {eshopResolving ? 'Vinculando...' : 'Vincular eShop'}
+                      </button>
+                    </div>
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
