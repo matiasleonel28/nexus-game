@@ -36,6 +36,13 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* Cursor y craft (guía emilkowalski / ui-ux-pro-max) */
+button:not(:disabled), select, [role="button"], a[href] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* Títulos con quiebres prolijos (huashu-design) */
+h1, h2, h3 { text-wrap: balance; }
+
 /* Foco visible y accesible en toda la app */
 :where(a, button, input, select, textarea):focus-visible {
   outline: 2px solid var(--accent);
@@ -43,6 +50,14 @@ body {
   border-radius: 4px;
 }
 
+/* Transición de página al cambiar de sección (ease-out, à la Emil Kowalski) */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-enter { animation: pageEnter 260ms cubic-bezier(0.16, 1, 0.3, 1); }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .page-enter { animation: none; }
 }

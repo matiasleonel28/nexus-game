@@ -11,7 +11,7 @@ function getButtonClass(variant = 'primary') {
   return `${base} bg-[var(--accent)] text-[var(--ink)] hover:bg-[var(--accent-strong)]`
 }
 
-export default function GameCard({ game, actions = [], controls = null, onDelete = null }) {
+export default function GameCard({ game, actions = [], controls = null, onDelete = null, showOwnedPlatform = true }) {
   const getHighResCover = (url) => {
     if (!url) return "https://via.placeholder.com/264x352?text=No+Cover";
     const cleanUrl = url.startsWith('//') ? `https:${url}` : url;
@@ -42,8 +42,8 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
           <button
             type="button"
             onClick={onDelete}
-            title="Eliminar de la biblioteca"
-            aria-label="Eliminar de la biblioteca"
+            title="Eliminar"
+            aria-label="Eliminar"
             className="absolute top-2 left-2 z-10 rounded bg-black/60 text-gray-200 p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[var(--danger)] hover:text-white transition"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -62,7 +62,7 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
           </h3>
 
           {/* Tu plataforma */}
-          {!isSearch && (
+          {!isSearch && showOwnedPlatform && (
             <div className="mt-1.5">
               {ownedLabel ? (
                 <span className="inline-block bg-[var(--accent)]/12 text-[var(--accent)] border border-[var(--accent)]/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">

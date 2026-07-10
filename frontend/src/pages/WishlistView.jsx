@@ -6,6 +6,10 @@ import { useGameRefresh } from '../context/GameRefreshContext'
 import { STORES, formatPrice } from '../constants'
 
 const storeLabel = (key) => STORES.find(s => s.key === key)?.label ?? key
+// Primera tienda con precio real, o null
+const storeWithData = (data) => STORES.find(s => data?.[s.key]?.current != null)?.key
+// Tienda probable según las plataformas del juego (IGDB): PC->steam, Switch->eshop
+const inferStore = (platforms = []) => platforms.includes('PC') ? 'steam' : (platforms.includes('Switch') ? 'eshop' : 'steam')
 
 export default function WishlistView() {
   const [games, setGames] = useState([])
@@ -19,8 +23,18 @@ export default function WishlistView() {
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
 
+  // Tienda por defecto a mostrar/vigilar:
+  //  1) la que ya vigilás  2) la que tiene precio real
+  //  3) si ITAD (Steam/Xbox/PC) no trajo NADA => casi seguro exclusivo de consola => eShop
+  //  4) mientras cargan los precios, inferir por plataformas
+  const defaultStore = (game) => {
+    if (game.watch_store) return game.watch_store
+    const data = prices[game.id]
+    return storeWithData(data) || (data !== undefined ? 'eshop' : inferStore(game.platforms))
+  }
+
   const draftFor = (game) => drafts[game.id] ?? {
-    store: game.watch_store || 'steam',
+    store: defaultStore(game),
     target: game.target_price ?? '',
   }
 
@@ -175,7 +189,6 @@ export default function WishlistView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {games.map(game => {
               const isMoving = actioning.includes(`move-${game.id}`)
-              const isDeleting = actioning.includes(`delete-${game.id}`)
               const isWatching = actioning.includes(`watch-${game.id}`)
               const eshopResolving = actioning.includes(`eshop-${game.id}`)
               const d = draftFor(game)
@@ -185,10 +198,11 @@ export default function WishlistView() {
               const belowTarget = storePrice?.current != null && !Number.isNaN(targetNum) && targetNum > 0 && storePrice.current <= targetNum
 
               const watchControls = (
-                <div className="mt-3 rounded border border-gray-800 bg-[var(--surface-3)] p-2">
+                <>
+                <div className="mt-3 rounded border border-[var(--line)] bg-[var(--surface-3)] p-2">
                   {game.target_price != null && (
                     <p className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-wider mb-1.5">
-                      🎯 Vigilando {game.watch_store || 'steam'} ≤ {formatPrice(game.target_price)}
+                      Vigilando {storeLabel(game.watch_store || d.store)} ≤ {formatPrice(game.target_price)}
                     </p>
                   )}
 
@@ -207,25 +221,25 @@ export default function WishlistView() {
                     </span>
                   </div>
                   {belowTarget && (
-                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-wider mb-2">✓ ¡Por debajo de tu objetivo!</p>
+                    <p className="text-[10px] text-[var(--positive)] font-bold uppercase tracking-wider mb-2">✓ ¡Por debajo de tu objetivo!</p>
                   )}
 
                   {/* Vincular eShop: solo si mirás eShop y el juego no tiene nsuid aún */}
                   {d.store === 'eshop' && !game.eshop_nsuid && (
-                    <div className="mb-2 border-t border-gray-800 pt-2">
-                      <p className="text-[10px] text-gray-500 mb-1">Pegá el link del juego en el <span className="text-gray-300">eShop de EE.UU.</span> para traer su precio:</p>
+                    <div className="mb-2 border-t border-[var(--line)] pt-2">
+                      <p className="text-[10px] text-[var(--muted)] mb-1">Pegá el link del juego en el <span className="text-[var(--text)]">eShop de EE.UU.</span> para traer su precio:</p>
                       <input
                         type="text"
                         placeholder="https://www.nintendo.com/us/store/products/..."
                         value={eshopLinks[game.id] || ''}
                         onChange={(e) => setEshopLinks(prev => ({ ...prev, [game.id]: e.target.value }))}
-                        className="w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[10px] rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)] placeholder-gray-600"
+                        className="w-full bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] text-[10px] rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
                       />
                       <button
                         type="button"
                         onClick={() => handleResolveEshop(game)}
                         disabled={eshopResolving}
-                        className="w-full mt-1.5 rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-gray-700 bg-[var(--surface-2)] text-gray-300 hover:border-[var(--accent)] hover:text-[var(--accent)] transition disabled:opacity-60"
+                        className="w-full mt-1.5 rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer transition disabled:opacity-60"
                       >
                         {eshopResolving ? 'Vinculando...' : 'Vincular eShop'}
                       </button>
@@ -237,7 +251,7 @@ export default function WishlistView() {
                       aria-label="Tienda a vigilar"
                       value={d.store}
                       onChange={(e) => setDraft(game.id, { store: e.target.value })}
-                      className="bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
+                      className="bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)] cursor-pointer"
                     >
                       {STORES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                     </select>
@@ -247,38 +261,39 @@ export default function WishlistView() {
                       placeholder="Precio objetivo"
                       value={d.target}
                       onChange={(e) => setDraft(game.id, { target: e.target.value })}
-                      className="bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)] placeholder-gray-600"
+                      className="bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)] placeholder-[var(--muted)]"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => handleWatch(game)}
                     disabled={isWatching}
-                    className="w-full mt-2 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-[var(--accent)]/50 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--ink)] transition disabled:opacity-60"
+                    className="w-full mt-2 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-[var(--accent)]/50 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--ink)] cursor-pointer transition disabled:opacity-60"
                   >
                     {isWatching ? 'Guardando...' : (game.target_price != null ? 'Actualizar vigilancia' : 'Vigilar precio')}
                   </button>
                 </div>
+
+                {/* Acción sutil de mover (sin botón pesado) */}
+                <button
+                  type="button"
+                  onClick={() => handleMoveToBacklog(game.id)}
+                  disabled={isMoving}
+                  className="w-full mt-2 flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)] hover:text-[var(--accent)] cursor-pointer transition-colors disabled:opacity-60"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                  {isMoving ? 'Moviendo…' : 'Mover a biblioteca'}
+                </button>
+                </>
               )
 
               return (
                 <GameCard
                   key={game.id}
                   game={game}
+                  showOwnedPlatform={false}
+                  onDelete={() => handleRemove(game.id)}
                   controls={watchControls}
-                  actions={[
-                    {
-                      label: isMoving ? 'Moviendo...' : 'Mover a Biblioteca',
-                      onClick: () => handleMoveToBacklog(game.id),
-                      disabled: isMoving,
-                    },
-                    {
-                      label: isDeleting ? 'Eliminando...' : 'Eliminar de wishlist',
-                      onClick: () => handleRemove(game.id),
-                      disabled: isDeleting,
-                      variant: 'danger',
-                    },
-                  ]}
                 />
               )
             })}
