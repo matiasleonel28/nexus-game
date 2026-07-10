@@ -1,0 +1,12 @@
+# Set default behavior to automatically handle line endings.
+# Git will normalize line endings to LF on commit and convert to native (CRLF on Windows) on checkout.
+* text=auto
+
+# Explicitly declare text files to ensure they are handled correctly.
+*.py text
+*.js text
+*.css text
+*.md text
+*.json text
+.gitignore text
+.env.example text

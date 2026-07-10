@@ -19,3 +19,14 @@ test-results/
 Thumbs.db
 .idea/
 .vscode/
+
+# Archivos de documentación generados por IA o para uso local.
+# claude.md se elimina de aquí porque es la "fuente de verdad" del proyecto y DEBE ser versionado.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Archivos de documentación generados por IA o para uso local
+01-USER_STORIES.md # Se gestionarán como Issues en GitHub
+.claude 
