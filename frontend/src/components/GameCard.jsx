@@ -1,4 +1,4 @@
-import { platformLabel } from '../constants'
+import { platformLabel, formatPrice, PLATFORM_TO_STORE } from '../constants'
 
 function getButtonClass(variant = 'primary') {
   const base = 'w-full rounded mt-3 px-3 py-2 text-xs font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60'
@@ -20,6 +20,11 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
 
   const isSearch = !game.status;
   const ownedLabel = platformLabel(game.owned_platform);
+  const preferredStore = PLATFORM_TO_STORE[game.owned_platform];
+  // Match si es la tienda exacta O si es PC y la tienda es PC compatible (steam/xbox)
+  const isMatch = game.price_store === preferredStore || (game.owned_platform?.startsWith('pc') && ['steam', 'xbox'].includes(game.price_store));
+  const isUnownedOrCollection = !game.owned_platform || game.owned_platform === 'ps5';
+  const priceColor = isMatch ? 'text-[var(--positive)] font-bold drop-shadow-[0_0_5px_rgba(var(--positive-rgb),0.3)]' : (isUnownedOrCollection ? 'text-[var(--muted)] opacity-70' : 'text-[var(--text)]');
 
   return (
     <div className="flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-lg overflow-hidden hover:border-[var(--accent)] transition-colors duration-200 group">
@@ -108,12 +113,14 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
             </div>
 
             {!isSearch && (
-              <div className="text-right flex flex-col items-end shrink-0">
-                <p className="font-num text-[var(--text)] text-sm">
-                  {game.current_price != null ? `$${game.current_price.toFixed(2)}` : <span className="text-[var(--muted)] font-sans">Sin precio</span>}
+              <div className={`text-right flex flex-col items-end shrink-0 transition-all ${priceColor}`}>
+                <p className="font-num text-sm">
+                  {game.current_price != null ? formatPrice(game.current_price, game.price_currency) : <span className="text-[var(--muted)] font-sans opacity-100 font-normal text-xs drop-shadow-none">Sin precio</span>}
                 </p>
                 {game.current_price != null && game.price_store && (
-                  <span className="text-[var(--muted)] text-[10px] font-semibold uppercase">{game.price_store}</span>
+                  <span className={`text-[10px] font-semibold uppercase ${isMatch ? 'text-[var(--positive)] opacity-90' : 'text-[var(--muted)]'}`}>
+                    {game.price_store} {isMatch && '✓'}
+                  </span>
                 )}
               </div>
             )}

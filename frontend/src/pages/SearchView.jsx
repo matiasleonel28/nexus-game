@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { searchGames, addToBacklog, addToWishlist } from '../api/games'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
-import { PLATFORMS } from '../constants'
+import { platformsForGame } from '../constants'
+import { useToast } from '../context/ToastContext'
 
 export default function SearchView() {
   const [query, setQuery] = useState('')
@@ -15,6 +16,7 @@ export default function SearchView() {
   const [platformByGame, setPlatformByGame] = useState({})   // igdb_id -> plataforma elegida
 
   const { refreshBacklog, refreshWishlist } = useGameRefresh()
+  const { addToast } = useToast()
 
   const handleSearch = async (event) => {
     event.preventDefault()
@@ -52,18 +54,24 @@ export default function SearchView() {
     setAdding((prev) => new Set(prev).add(actionKey))
 
     try {
+      const game = results.find(g => g.igdb_id === igdbId)
       if (target === 'backlog') {
-        await addToBacklog(igdbId, platformByGame[igdbId] ?? 'pc')
+        const fallback = platformsForGame(game?.platforms)[0]?.value ?? 'pc'
+        await addToBacklog(igdbId, platformByGame[igdbId] ?? fallback)
         refreshBacklog()
-        setSuccess('¡Juego añadido a tu Biblioteca exitosamente!')
+        addToast(`${game.title} agregado a tu Biblioteca`)
       } else {
         await addToWishlist(igdbId)
         refreshWishlist()
-        setSuccess('¡Juego añadido a tu Wishlist exitosamente!')
+        addToast(`${game.title} agregado a tu Wishlist`)
       }
     } catch (err) {
-      setError(err)
       console.error(`Add to ${target} error:`, err)
+      if (err.status === 409) {
+        addToast('Ya tenés este juego', 'warning')
+      } else {
+        addToast(err.message, 'error')
+      }
     } finally {
       setAdding((prev) => {
         const newSet = new Set(prev)
@@ -81,7 +89,7 @@ export default function SearchView() {
             Explorar Juegos
           </h1>
           <p className="text-gray-500 text-xs mt-1 uppercase font-semibold">
-            Encuentra nuevos títulos en IGDB y organízalos
+            Buscá un juego y sumalo a tu biblioteca o wishlist
           </p>
         </header>
 
@@ -110,12 +118,12 @@ export default function SearchView() {
 
         {/* Notificaciones */}
         {error && (
-          <div className="mb-6 rounded border border-red-900 bg-red-950/30 px-4 py-3 text-red-400 text-sm font-semibold tracking-wide">
+          <div className="mb-6 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/5 px-4 py-3 text-[var(--danger)] text-sm font-semibold tracking-wide">
             {error.message || error}
           </div>
         )}
         {success && (
-          <div className="mb-6 rounded border border-green-900 bg-green-950/30 px-4 py-3 text-green-400 text-sm font-semibold tracking-wide">
+          <div className="mb-6 rounded border border-[var(--positive)]/30 bg-[var(--positive)]/5 px-4 py-3 text-[var(--positive)] text-sm font-semibold tracking-wide">
             {success}
           </div>
         )}
@@ -145,11 +153,12 @@ export default function SearchView() {
               const isAddingBacklog = adding.has(`backlog-${game.igdb_id}`)
               const isAddingWishlist = adding.has(`wishlist-${game.igdb_id}`)
 
-              const selectedPlatform = platformByGame[game.igdb_id] ?? 'pc'
-              const platformPicker = (
+              const availablePlatforms = platformsForGame(game.platforms)
+              const selectedPlatform = platformByGame[game.igdb_id] ?? availablePlatforms[0]?.value
+              const platformPicker = availablePlatforms.length > 1 ? (
                 <div className="mt-3">
                   <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
-                    ¿En qué plataforma lo tenés/jugás?
+                    ¿En qué plataforma lo jugás?
                   </label>
                   <select
                     aria-label="Plataforma"
@@ -157,12 +166,12 @@ export default function SearchView() {
                     onChange={(e) => setPlatformByGame(prev => ({ ...prev, [game.igdb_id]: e.target.value }))}
                     className="w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
                   >
-                    {PLATFORMS.map(p => (
+                    {availablePlatforms.map(p => (
                       <option key={p.value} value={p.value}>{p.label}</option>
                     ))}
                   </select>
                 </div>
-              )
+              ) : null
               return (
                 <GameCard
                   key={game.igdb_id}

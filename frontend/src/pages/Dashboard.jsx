@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getBacklog, updateGame, deleteGame } from '../api/games'
+import { getBacklog, updateGame, deleteGame, getRecommendation } from '../api/games'
 import GameCard from '../components/GameCard'
 import ConfirmDialog from '../components/ConfirmDialog'
+import StatsChart from '../components/StatsChart'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { LIBRARY_STATUSES, PLATFORMS } from '../constants'
+import { useToast } from '../context/ToastContext'
 
 const STATUS_TABS = [{ value: 'todos', label: 'Todos' }, ...LIBRARY_STATUSES]
 
 export default function Dashboard() {
   const [games, setGames]     = useState([])
+  const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
@@ -22,6 +25,7 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState(false)
 
   const { backlogVersion } = useGameRefresh()
+  const { addToast } = useToast()
 
   // silent = recarga los datos sin mostrar el spinner de pantalla completa
   // (evita el "parpadeo" al editar estado/plataforma en el lugar)
@@ -50,6 +54,14 @@ export default function Dashboard() {
     return () => { signal.current = false }
   }, [fetchBacklog, backlogVersion])
 
+  useEffect(() => {
+    let active = true
+    getRecommendation()
+      .then(data => { if (active) setRecommendations(data) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [backlogVersion])
+
   const handleEdit = async (game, patch) => {
     const key = `edit-${game.id}`
     setActioning(prev => [...prev, key])
@@ -57,8 +69,10 @@ export default function Dashboard() {
     try {
       await updateGame(game.id, patch)
       await fetchBacklog({ current: true }, { silent: true })   // sin parpadeo
+      if (patch.status) addToast('Estado actualizado')
+      if (patch.owned_platform) addToast('Plataforma actualizada')
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(k => k !== key))
     }
@@ -67,13 +81,13 @@ export default function Dashboard() {
   const confirmDelete = async () => {
     if (!pendingDelete) return
     setDeleting(true)
-    setError(null)
     try {
       await deleteGame(pendingDelete.id)
       setPendingDelete(null)
       await fetchBacklog({ current: true }, { silent: true })
+      addToast('Juego eliminado')
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setDeleting(false)
     }
@@ -82,13 +96,15 @@ export default function Dashboard() {
   const filteredGames = games.filter(game => {
     const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase())
     if (!matchesSearch) return false
-    if (filterDuration === "short") return game.hltb_main_hours <= 10
-    if (filterDuration === "medium") return game.hltb_main_hours > 10 && game.hltb_main_hours <= 20
-    if (filterDuration === "long") return game.hltb_main_hours > 20
+    // FIX: null <= 10 es true en JS, por eso verificamos que el dato exista antes de comparar
+    const hours = game.hltb_main_hours
+    if (filterDuration === "short")  return hours != null && hours <= 10
+    if (filterDuration === "medium") return hours != null && hours > 10 && hours <= 20
+    if (filterDuration === "long")   return hours != null && hours > 20
     return true
   })
 
-  const selectClass = "w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
+  const selectClass = "w-full bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
 
   return (
     <div className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
@@ -98,6 +114,8 @@ export default function Dashboard() {
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Mi Biblioteca</h1>
           <p className="text-gray-500 text-xs mt-1">Tus juegos por estado y plataforma</p>
         </div>
+
+        <StatsChart />
 
         {/* Solapas por estado (underline tabs) */}
         <div className="mb-6 flex gap-6 border-b border-[var(--line)] overflow-x-auto">
@@ -125,6 +143,30 @@ export default function Dashboard() {
           })}
         </div>
 
+        {/* Sugerencia del día */}
+        {recommendations.length > 0 && (
+          <div className="mb-8 p-4 bg-[var(--surface)] border border-[var(--accent)]/30 rounded-lg shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accent)]"></div>
+            <div className="flex items-center gap-2 mb-4 pl-3">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              <h2 className="text-lg font-bold text-[var(--text)] uppercase tracking-widest">Sugerencia del día</h2>
+              <span className="text-[10px] text-[var(--accent)] font-semibold border border-[var(--accent)] rounded px-1.5 py-0.5 ml-2">Personalizado</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pl-3">
+              {recommendations.map(game => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  controls={null} // Opciones limitadas para la recomendación
+                  onDelete={() => setPendingDelete(game)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Búsqueda */}
         <div className="mb-6">
           <input
@@ -137,21 +179,21 @@ export default function Dashboard() {
         </div>
 
         {/* Filtros de duración y orden */}
-        <div className="flex flex-wrap gap-4 items-center mb-8 bg-[var(--surface)] p-4 rounded-lg border border-gray-800">
-          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Filter By:</span>
+        <div className="flex flex-wrap gap-4 items-center mb-8 bg-[var(--surface)] p-4 rounded-lg border border-[var(--line)]">
+          <span className="text-[var(--muted)] text-xs font-bold uppercase tracking-wider">Filtrar:</span>
           <select value={filterDuration} onChange={(e) => setFilterDuration(e.target.value)}
-            className="bg-[var(--surface-2)] border border-gray-700 text-gray-300 text-xs font-bold rounded px-3 py-1.5 focus:outline-none focus:border-[var(--accent)]">
-            <option value="all">DURATION (ALL)</option>
-            <option value="short">SHORT (0-10 HS)</option>
-            <option value="medium">MEDIUM (10-20 HS)</option>
-            <option value="long">LONG (+20 HS)</option>
+            className="bg-[var(--surface-2)] border border-[var(--line)] text-[var(--muted)] text-xs font-bold rounded px-3 py-1.5 focus:outline-none focus:border-[var(--accent)]">
+            <option value="all">Duración (todas)</option>
+            <option value="short">Corta (0–10 hs)</option>
+            <option value="medium">Media (10–20 hs)</option>
+            <option value="long">Larga (+20 hs)</option>
           </select>
           <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}
-            className="ml-auto bg-[var(--surface-2)] border border-gray-700 text-gray-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded transition-colors uppercase tracking-wider focus:outline-none focus:border-[var(--accent)]">
-            <option value="duration_asc">Sort by: Duration ↑</option>
-            <option value="duration_desc">Sort by: Duration ↓</option>
-            <option value="value_asc">Sort by: Value ($/h) ⚡</option>
-            <option value="price_asc">Sort by: Price ↑</option>
+            className="ml-auto bg-[var(--surface-2)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] text-xs font-bold px-3 py-1.5 rounded transition-colors uppercase tracking-wider focus:outline-none focus:border-[var(--accent)]">
+            <option value="duration_asc">Ordenar: Duración ↑</option>
+            <option value="duration_desc">Ordenar: Duración ↓</option>
+            <option value="value_asc">Ordenar: Valor ($/h)</option>
+            <option value="price_asc">Ordenar: Precio ↑</option>
           </select>
         </div>
 
@@ -159,7 +201,9 @@ export default function Dashboard() {
 
         {error && (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-[var(--ink)]">
-            <div className="text-4xl mb-4">📡</div>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-4 mx-auto">
+              <path d="M2 12a10 10 0 0 1 18-6"/><path d="M22 12a10 10 0 0 1-18 6"/><circle cx="12" cy="12" r="2"/>
+            </svg>
             <h3 className="text-xl font-bold text-white mb-2">Sincronización pausada</h3>
             <p className="text-gray-400 max-w-sm mb-6">{error.message || error}</p>
             <button onClick={() => window.location.reload()}

@@ -94,7 +94,12 @@ export default function HunterView() {
                       {p ? (
                         <p className="text-[var(--muted)] text-[11px] mt-0.5">
                           Mínimo histórico: <span className="font-num">{formatPrice(lowest, currency) ?? '—'}</span>
-                          {isHistoricLow && <span className="ml-2 text-[var(--accent)] font-bold">🔥 ¡en su mínimo!</span>}
+                          {isHistoricLow && (
+                            <span className="ml-2 text-[var(--positive)] font-bold inline-flex items-center gap-1">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                              ¡en su mínimo!
+                            </span>
+                          )}
                         </p>
                       ) : (
                         <p className="text-gray-600 text-[11px] mt-0.5">Sin datos en esta tienda</p>
