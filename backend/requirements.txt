@@ -1,10 +1,11 @@
-﻿aiohappyeyeballs==2.6.2
+aiohappyeyeballs==2.6.2
 aiohttp==3.13.5
 aiosignal==1.4.0
 aiounittest==1.5.0
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
+alembic==1.13.1
 APScheduler==3.11.2
 attrs==26.1.0
 bcrypt==4.0.1
