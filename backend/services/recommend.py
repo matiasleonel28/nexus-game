@@ -54,7 +54,7 @@ def get_recommendation(db: Session, current_user: User) -> list[GameResponse]:
         if is_time_constrained:
             return hours
         else:
-            return hours
+            return -hours
 
     filtered_games.sort(key=sort_key)
 

@@ -154,10 +154,10 @@ export default function WishlistView() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Wishlist</h1>
-          <p className="text-gray-500 text-xs mt-1">Aquí verás tus juegos guardados en wishlist.</p>
+          <p className="text-[var(--muted)] text-xs mt-1">Aquí verás tus juegos guardados en wishlist.</p>
         </div>
 
-        {loading && <div className="text-center py-10 text-gray-500 font-bold uppercase tracking-wider">Cargando wishlist...</div>}
+        {loading && <div className="text-center py-10 text-[var(--muted)] font-bold uppercase tracking-wider">Cargando wishlist...</div>}
         
         {/* Error State Elegante */}
         {error && (
@@ -166,7 +166,7 @@ export default function WishlistView() {
               <path d="M2 12a10 10 0 0 1 18-6"/><path d="M22 12a10 10 0 0 1-18 6"/><circle cx="12" cy="12" r="2"/>
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Sincronización pausada</h3>
-            <p className="text-gray-400 max-w-sm mb-6">{error.message || error}</p>
+            <p className="text-[var(--muted)] max-w-sm mb-6">{error.message || error}</p>
             <button 
               onClick={() => window.location.reload()} 
               className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-[var(--ink)] font-medium rounded transition"
@@ -200,7 +200,7 @@ export default function WishlistView() {
                 <div className="mt-3 rounded border border-[var(--line)] bg-[var(--surface-3)] p-2">
                   {game.target_price != null && (
                     <p className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-wider mb-1.5">
-                      Vigilando {storeLabel(game.watch_store || d.store)} ≤ {formatPrice(game.target_price)}
+                      Vigilando {storeLabel(game.watch_store || d.store)} ≤ <span className="font-num">{formatPrice(game.target_price)}</span>
                     </p>
                   )}
 
@@ -211,7 +211,7 @@ export default function WishlistView() {
                       {storePrice?.current != null ? (
                         <span className={`font-num text-base ${belowTarget ? 'text-[var(--positive)]' : 'text-[var(--text)]'}`}>
                           {formatPrice(storePrice.current, storePrice.currency)}
-                          {storePrice.cut > 0 && <span className="text-[var(--accent)] text-[10px] font-bold ml-1 font-sans">-{storePrice.cut}%</span>}
+                          {storePrice.cut > 0 && <span className="text-[var(--accent)] text-[10px] font-bold font-num ml-1">-{storePrice.cut}%</span>}
                         </span>
                       ) : (
                         <span className="text-[var(--muted)] text-[11px] font-bold">{hasPrices ? 'sin datos' : '…'}</span>

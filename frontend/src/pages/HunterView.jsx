@@ -37,7 +37,7 @@ export default function HunterView() {
         <div className="mb-6">
           <p className="text-xs uppercase tracking-[0.3em] text-[var(--accent)] font-bold">Hunter</p>
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Cazador de ofertas</h1>
-          <p className="text-gray-500 text-xs mt-1">Precios en pesos (ARS) en Steam, Nintendo eShop y Xbox Store</p>
+          <p className="text-[var(--muted)] text-xs mt-1">Precios en pesos (ARS) en Steam, Nintendo eShop y Xbox Store</p>
         </div>
 
         {/* Buscador */}
@@ -47,7 +47,7 @@ export default function HunterView() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="TÍTULO DEL JUEGO (EJ: HOLLOW KNIGHT)..."
-            className="flex-1 rounded bg-[var(--surface)] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 outline-none focus:border-[var(--accent)] tracking-wide"
+            className="flex-1 rounded bg-[var(--surface)] border border-[var(--line)] px-4 py-3 text-sm text-white font-semibold placeholder-[var(--muted)] outline-none focus:border-[var(--accent)] tracking-wide"
           />
           <button
             type="submit"
@@ -59,17 +59,17 @@ export default function HunterView() {
         </form>
 
         {error && (
-          <div className="mb-6 rounded border border-red-900 bg-red-950/30 px-4 py-3 text-red-400 text-sm font-semibold">
+          <div className="mb-6 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/5 px-4 py-3 text-[var(--danger)] text-sm font-semibold">
             {error.message || String(error)}
           </div>
         )}
 
         {loading && (
-          <div className="text-center py-16 text-gray-500 font-bold">Consultando precios...</div>
+          <div className="text-center py-16 text-[var(--muted)] font-bold">Consultando precios...</div>
         )}
 
         {!loading && result && !hasAnyData && (
-          <div className="rounded-lg border border-gray-800 bg-[var(--surface)] px-6 py-10 text-center text-gray-400">
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-6 py-10 text-center text-[var(--muted)]">
             <p className="text-sm font-bold uppercase tracking-wider text-[var(--accent)] mb-1">Sin datos de precio</p>
             <p className="text-xs">No encontramos precios de "{searchedTitle}" en Steam/eShop/Xbox. Probá con otro título.</p>
           </div>
@@ -102,7 +102,7 @@ export default function HunterView() {
                           )}
                         </p>
                       ) : (
-                        <p className="text-gray-600 text-[11px] mt-0.5">Sin datos en esta tienda</p>
+                        <p className="text-[var(--muted)] text-[11px] mt-0.5">Sin datos en esta tienda</p>
                       )}
                     </div>
 
@@ -113,19 +113,19 @@ export default function HunterView() {
                             {formatPrice(current, currency)}
                           </p>
                           {cut > 0 && (
-                            <span className="inline-block mt-1 bg-[var(--accent)] text-[var(--ink)] text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                            <span className="inline-block mt-1 bg-[var(--accent)] text-[var(--ink)] text-[10px] font-bold font-num px-2 py-0.5 rounded uppercase tracking-wider">
                               -{cut}%
                             </span>
                           )}
                           {p.url && (
                             <a href={p.url} target="_blank" rel="noreferrer"
-                              className="block text-[10px] text-gray-500 hover:text-[var(--accent)] mt-1 uppercase tracking-wider font-bold">
+                              className="block text-[10px] text-[var(--muted)] hover:text-[var(--accent)] mt-1 uppercase tracking-wider font-bold">
                               Ver oferta ↗
                             </a>
                           )}
                         </>
                       ) : (
-                        <p className="text-gray-600 text-sm">—</p>
+                        <p className="text-[var(--muted)] text-sm">—</p>
                       )}
                     </div>
                   </div>

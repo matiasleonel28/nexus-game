@@ -112,7 +112,7 @@ export default function Dashboard() {
 
         <div className="mb-6">
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Mi Biblioteca</h1>
-          <p className="text-gray-500 text-xs mt-1">Tus juegos por estado y plataforma</p>
+          <p className="text-[var(--muted)] text-xs mt-1">Tus juegos por estado y plataforma</p>
         </div>
 
         <StatsChart />
@@ -197,7 +197,7 @@ export default function Dashboard() {
           </select>
         </div>
 
-        {loading && <div className="text-center py-20 text-gray-500 font-bold">Cargando biblioteca...</div>}
+        {loading && <div className="text-center py-20 text-[var(--muted)] font-bold">Cargando biblioteca...</div>}
 
         {error && (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-[var(--ink)]">
@@ -205,7 +205,7 @@ export default function Dashboard() {
               <path d="M2 12a10 10 0 0 1 18-6"/><path d="M22 12a10 10 0 0 1-18 6"/><circle cx="12" cy="12" r="2"/>
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Sincronización pausada</h3>
-            <p className="text-gray-400 max-w-sm mb-6">{error.message || error}</p>
+            <p className="text-[var(--muted)] max-w-sm mb-6">{error.message || error}</p>
             <button onClick={() => window.location.reload()}
               className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-[var(--ink)] font-medium rounded transition">
               Reintentar conexión
@@ -258,7 +258,7 @@ export default function Dashboard() {
 
         {!loading && !error && filteredGames.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 font-medium">No hay juegos en este estado. Agregá desde "Buscar" o cambiá de pestaña.</p>
+            <p className="text-[var(--muted)] font-medium">No hay juegos en este estado. Agregá desde "Buscar" o cambiá de pestaña.</p>
           </div>
         )}
 

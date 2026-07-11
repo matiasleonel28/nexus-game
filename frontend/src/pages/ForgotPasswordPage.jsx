@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
         {message ? (
           <div className="text-center">
             <p className="text-[var(--positive)] text-sm mb-6">{message}</p>
-            <Link to="/login" className="inline-block align-baseline font-bold text-sm text-[var(--accent)] hover:text-amber-400">
+            <Link to="/login" className="inline-block align-baseline font-bold text-sm text-[var(--accent)] hover:text-[var(--accent-strong)]">
               Volver a Iniciar Sesión
             </Link>
           </div>
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
                 className="w-full px-3 py-2 leading-tight text-white border rounded shadow appearance-none bg-[var(--surface-2)] border-[var(--line)] focus:outline-none focus:shadow-outline"
                 id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <button disabled={loading} className="w-full px-4 py-2 font-bold text-[var(--ink)] transition-colors bg-[var(--accent)] rounded hover:bg-amber-400 focus:outline-none focus:shadow-outline disabled:opacity-50" type="submit">
+            <button disabled={loading} className="w-full px-4 py-2 font-bold text-[var(--ink)] transition-colors bg-[var(--accent)] rounded hover:bg-[var(--accent-strong)] focus:outline-none focus:shadow-outline disabled:opacity-50" type="submit">
               {loading ? 'Enviando...' : 'Enviar enlace de restablecimiento'}
             </button>
           </form>

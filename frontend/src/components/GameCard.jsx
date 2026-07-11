@@ -13,7 +13,7 @@ function getButtonClass(variant = 'primary') {
 
 export default function GameCard({ game, actions = [], controls = null, onDelete = null, showOwnedPlatform = true }) {
   const getHighResCover = (url) => {
-    if (!url) return "https://via.placeholder.com/264x352?text=No+Cover";
+    if (!url) return "https://via.placeholder.com/264x352?text=Sin+Caratula";
     const cleanUrl = url.startsWith('//') ? `https:${url}` : url;
     return cleanUrl.replace('t_thumb', 't_cover_big');
   };
@@ -49,7 +49,7 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
             onClick={onDelete}
             title="Eliminar"
             aria-label="Eliminar"
-            className="absolute top-2 left-2 z-10 rounded bg-black/60 text-gray-200 p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[var(--danger)] hover:text-white transition"
+            className="absolute top-2 left-2 z-10 rounded bg-black/60 text-[var(--text)] p-1.5 backdrop-blur-sm opacity-80 hover:opacity-100 hover:bg-[var(--danger)] hover:text-white transition"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />

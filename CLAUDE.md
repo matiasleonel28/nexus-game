@@ -144,9 +144,28 @@ nexus/
 - **prices_hub.py**: combina ITAD (steam/xbox) + Nintendo (eshop) por juego.
 - **watches.py**: evalúa `target_price` vs precio real → genera Alert (target_reached / historical_low).
 
+## Migraciones (Alembic)
+
+Alembic está configurado con `render_as_batch=True` (necesario para SQLite ALTER TABLE).
+
+```bash
+# Desde backend/
+# Crear nueva migración tras modificar models.py:
+.venv/Scripts/python.exe -m alembic revision --autogenerate -m "descripcion del cambio"
+
+# Aplicar migraciones pendientes:
+.venv/Scripts/python.exe -m alembic upgrade head
+
+# Revertir la última migración:
+.venv/Scripts/python.exe -m alembic downgrade -1
+
+# Marcar DB existente sin ejecutar (primera vez):
+.venv/Scripts/python.exe -m alembic stamp head
+```
+
 ## Estado / deuda conocida
 
-- **Migraciones:** no hay Alembic. DB migrada a mano. Antes de cambiar esquema, sumar Alembic.
+- **Migraciones:** Alembic configurado y funcionando. Cada cambio de modelo requiere migración.
 - **Precios backlog:** migrados a ITAD (multi-tienda, moneda real por tienda).
 - **Discount eShop sin testear:** parsing de descuento Nintendo escrito pero sin prueba con juego rebajado real.
 - **Tauri:** no implementado (corre como web local). Está en la spec.

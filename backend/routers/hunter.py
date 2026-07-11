@@ -32,14 +32,6 @@ async def hunter_prices(title: str, current_user: User = Depends(get_current_use
     return {"title": title, "stores": data}
 
 
-@router.get("/hunter/raw")
-async def hunter_raw(title: str, current_user: User = Depends(get_current_user)):
-    """Diagnóstico: respuestas crudas de ITAD para verificar el parseo."""
-    try:
-        return await itad.get_raw(title)
-    except itad.ITADError as e:
-        raise HTTPException(status_code=503, detail=str(e))
-
 
 @router.get("/hunter/game/{game_id}/prices")
 async def hunter_game_prices(game_id: int,

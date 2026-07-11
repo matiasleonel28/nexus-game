@@ -105,10 +105,10 @@ export default function AlertsView() {
           <div className="mb-4 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/5 px-4 py-3 text-[var(--danger)] text-sm font-semibold">{error.message || String(error)}</div>
         )}
 
-        {loading && <div className="text-center py-16 text-gray-500 font-bold">Cargando alertas...</div>}
+        {loading && <div className="text-center py-16 text-[var(--muted)] font-bold">Cargando alertas...</div>}
 
         {!loading && alerts.length === 0 && !error && (
-          <div className="rounded-lg border border-gray-800 bg-[var(--surface)] px-6 py-10 text-center text-gray-400">
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-6 py-10 text-center text-[var(--muted)]">
             <p className="text-sm font-bold uppercase tracking-wider mb-1">Sin alertas todavía</p>
             <p className="text-xs">Poné un precio objetivo a un juego en la Wishlist y tocá "Revisar precios ahora".</p>
           </div>
@@ -120,15 +120,15 @@ export default function AlertsView() {
               <div
                 key={a.id}
                 className={`rounded-lg border p-4 flex items-center justify-between gap-4 ${
-                  a.is_read ? 'border-gray-800 bg-[var(--surface-3)] opacity-60' : 'border-[var(--accent)]/40 bg-[var(--surface)]'
+                  a.is_read ? 'border-[var(--line)] bg-[var(--surface-3)] opacity-60' : 'border-[var(--accent)]/40 bg-[var(--surface)]'
                 }`}
               >
                 <div className="min-w-0">
                   <p className="text-white font-bold text-sm truncate">{a.title}</p>
-                  <p className="text-gray-400 text-[11px] mt-0.5 flex items-center">
+                  <p className="text-[var(--muted)] text-[11px] mt-0.5 flex items-center">
                     {TYPE_ICON[a.type]}{TYPE_LABEL[a.type] || a.type} · {a.store} · <span className="font-num ml-1">{formatPrice(a.price)}</span>
                   </p>
-                  <p className="text-gray-600 text-[10px] mt-0.5">
+                  <p className="text-[var(--muted)] text-[10px] mt-0.5">
                     {new Date(a.triggered_at).toLocaleString('es-AR')}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export default function AlertsView() {
                   <button
                     type="button"
                     onClick={() => handleRead(a.id)}
-                    className="shrink-0 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-gray-700 bg-[var(--surface-2)] text-gray-300 hover:border-[var(--accent)] hover:text-[var(--accent)] transition"
+                    className="shrink-0 rounded px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-[var(--line)] bg-[var(--surface-2)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition"
                   >
                     Marcar leída
                   </button>

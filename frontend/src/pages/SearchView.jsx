@@ -88,7 +88,7 @@ export default function SearchView() {
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">
             Explorar Juegos
           </h1>
-          <p className="text-gray-500 text-xs mt-1 uppercase font-semibold">
+          <p className="text-[var(--muted)] text-xs mt-1 uppercase font-semibold">
             Buscá un juego y sumalo a tu biblioteca o wishlist
           </p>
         </header>
@@ -103,7 +103,7 @@ export default function SearchView() {
               setError(null)
               setSuccess(null)
             }}
-            className="flex-1 rounded bg-[var(--surface)] border border-gray-800 px-4 py-3 text-sm text-white font-semibold placeholder-gray-600 shadow-md outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] tracking-wide transition-all"
+            className="flex-1 rounded bg-[var(--surface)] border border-[var(--line)] px-4 py-3 text-sm text-white font-semibold placeholder-[var(--muted)] shadow-md outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] tracking-wide transition-all"
             placeholder="BUSCAR EN LA BASE DE DATOS (EJ: HOLLOW KNIGHT)..."
             aria-label="Buscar juego"
           />
@@ -130,7 +130,7 @@ export default function SearchView() {
 
         {/* Estados Vacíos */}
         {!loading && !hasSearched && (
-          <div className="mb-6 rounded-lg border border-gray-800 bg-[var(--surface)] px-4 py-12 text-center text-gray-500">
+          <div className="mb-6 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-12 text-center text-[var(--muted)]">
             <p className="text-sm font-bold tracking-wider uppercase">
               Ingresa un término arriba para comenzar la búsqueda.
             </p>
@@ -138,7 +138,7 @@ export default function SearchView() {
         )}
 
         {!loading && hasSearched && results.length === 0 && (
-          <div className="mb-6 rounded-lg border border-gray-800 bg-[var(--surface)] px-4 py-12 text-center text-gray-500">
+          <div className="mb-6 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-12 text-center text-[var(--muted)]">
             <p className="text-sm font-bold tracking-wider uppercase text-[var(--accent)]">
               No se encontraron resultados
             </p>
@@ -157,14 +157,14 @@ export default function SearchView() {
               const selectedPlatform = platformByGame[game.igdb_id] ?? availablePlatforms[0]?.value
               const platformPicker = availablePlatforms.length > 1 ? (
                 <div className="mt-3">
-                  <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <label className="block text-[var(--muted)] text-[10px] font-bold uppercase tracking-wider mb-1">
                     ¿En qué plataforma lo jugás?
                   </label>
                   <select
                     aria-label="Plataforma"
                     value={selectedPlatform}
                     onChange={(e) => setPlatformByGame(prev => ({ ...prev, [game.igdb_id]: e.target.value }))}
-                    className="w-full bg-[var(--surface-2)] border border-gray-700 text-gray-200 text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
+                    className="w-full bg-[var(--surface-2)] border border-[var(--line)] text-[var(--text)] text-[11px] font-bold rounded px-2 py-1.5 focus:outline-none focus:border-[var(--accent)]"
                   >
                     {availablePlatforms.map(p => (
                       <option key={p.value} value={p.value}>{p.label}</option>

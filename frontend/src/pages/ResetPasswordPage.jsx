@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
         {success ? (
           <div className="text-center">
             <p className="text-[var(--positive)] text-sm mb-6">{success}</p>
-            <Link to="/login" className="inline-block align-baseline font-bold text-sm text-[var(--accent)] hover:text-amber-400">
+            <Link to="/login" className="inline-block align-baseline font-bold text-sm text-[var(--accent)] hover:text-[var(--accent-strong)]">
               Ir a Iniciar Sesión
             </Link>
           </div>
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
                 id="confirm-password" type="password" placeholder="******************" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
               {error && <p className="text-xs italic text-[var(--danger)]">{error}</p>}
             </div>
-            <button disabled={loading} className="w-full px-4 py-2 font-bold text-[var(--ink)] transition-colors bg-[var(--accent)] rounded hover:bg-amber-400 focus:outline-none focus:shadow-outline disabled:opacity-50" type="submit">
+            <button disabled={loading} className="w-full px-4 py-2 font-bold text-[var(--ink)] transition-colors bg-[var(--accent)] rounded hover:bg-[var(--accent-strong)] focus:outline-none focus:shadow-outline disabled:opacity-50" type="submit">
               {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
             </button>
           </form>

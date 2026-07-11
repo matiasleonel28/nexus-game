@@ -39,7 +39,7 @@ class Game(Base):
     hltb_main_hours          = Column(Float)
     hltb_completionist_hours = Column(Float)
     has_coop                 = Column(Boolean, default=False)
-    has_splitscreen          = Column(Boolean, default=False)
+
     target_price             = Column(Float)
     watch_store              = Column(String)
     eshop_nsuid              = Column(String)
