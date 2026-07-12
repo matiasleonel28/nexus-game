@@ -12,10 +12,11 @@ verifican/ajustan la primera vez que corre con una key real.
 import os
 import aiohttp
 from dotenv import load_dotenv
+from security import _require_secret
 
 load_dotenv()
 
-API_KEY  = os.getenv("ITAD_API_KEY")
+API_KEY  = _require_secret("ITAD_API_KEY", "dev_itad_api_key")
 BASE     = "https://api.isthereanydeal.com"
 COUNTRY  = os.getenv("ITAD_COUNTRY", "AR")   # AR -> precios en ARS
 
@@ -41,8 +42,7 @@ class ITADError(RuntimeError):
 
 
 def _require_key():
-    if not API_KEY:
-        raise ITADError("Falta ITAD_API_KEY en el .env (https://isthereanydeal.com/apps/new/)")
+    pass
 
 
 async def lookup_id(title: str) -> str | None:
