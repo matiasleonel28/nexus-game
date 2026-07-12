@@ -73,6 +73,7 @@ def _to_response(game: Game) -> GameResponse:
         cost_per_hour=cost_per_hour,
         enjoyment_per_hour=enjoyment_per_hour,
         release_date=game.release_date,
+        abandon_reason=game.abandon_reason,
     )
 
 

@@ -244,6 +244,12 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
 
           {controls}
 
+          {game.status === 'abandoned' && game.abandon_reason && (
+            <div className="mt-2 bg-[var(--surface-2)] border-l-2 border-[var(--danger)]/50 p-2 text-xs text-[var(--muted)] italic">
+              “{game.abandon_reason}”
+            </div>
+          )}
+
           {actions.length > 0 && (
             <div className="mt-1 grid gap-2">
               {actions.map((action, index) => (

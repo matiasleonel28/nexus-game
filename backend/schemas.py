@@ -24,6 +24,7 @@ class UpdateGameRequest(BaseModel):
     enjoyment: Optional[int] = None         # 1-5
     target_price: Optional[float] = None    # precio objetivo del Hunter
     watch_store: Optional[str] = None       # steam | eshop | xbox
+    abandon_reason: Optional[str] = None
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -52,6 +53,7 @@ class GameResponse(BaseModel):
     enjoyment_per_hour:       Optional[float] = None
     release_date:             Optional[datetime]
     recommendation_reason:    Optional[str] = None
+    abandon_reason:           Optional[str] = None
 
     class Config:
         from_attributes = True  # permite leer desde objetos SQLAlchemy
