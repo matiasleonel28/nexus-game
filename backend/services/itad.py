@@ -7,7 +7,7 @@ de la región (country=AR -> ARS). Reemplaza a CheapShark (que solo daba Steam/U
 Requiere ITAD_API_KEY en el .env (gratis en https://isthereanydeal.com/apps/new/).
 
 NOTA: escrito contra la API v2 documentada. Las formas exactas de respuesta se
-verifican/ajustan la primera vez que corre con una key real (ver /api/hunter/raw).
+verifican/ajustan la primera vez que corre con una key real.
 """
 import os
 import aiohttp

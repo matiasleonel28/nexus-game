@@ -57,7 +57,6 @@ users ──1:N── library_entries ──N:1── games ──1:N── game
 | hltb_main_hours | REAL | | historia principal |
 | hltb_completionist_hours | REAL | | 100% |
 | has_coop | BOOLEAN | DEFAULT 0 | cooperativo |
-| has_splitscreen | BOOLEAN | DEFAULT 0 | pantalla dividida |
 | has_crossplay | BOOLEAN | DEFAULT 0 | **NUEVO** — filtro crossplay |
 | metadata_updated_at | DATETIME | | control de caché de metadata |
 
