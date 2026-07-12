@@ -17,6 +17,8 @@ export default function Dashboard() {
 
   const [searchTerm, setSearchTerm] = useState("")
   const [filterDuration, setFilterDuration] = useState("all")
+  const [filterCoop, setFilterCoop] = useState(false)
+  const [filterCrossplay, setFilterCrossplay] = useState(false)
   const [sortOption, setSortOption] = useState("duration_asc")
   const [statusFilter, setStatusFilter] = useState("todos")
 
@@ -36,6 +38,8 @@ export default function Dashboard() {
     try {
       const params = { sort: sortOption }
       if (statusFilter !== 'todos') params.status = statusFilter
+      if (filterCoop) params.coop = true
+      if (filterCrossplay) params.crossplay = true
       const data = await getBacklog(params)
       if (!signal.current) return
       setGames(data)
@@ -44,7 +48,7 @@ export default function Dashboard() {
     } finally {
       if (signal.current && !silent) setLoading(false)
     }
-  }, [sortOption, statusFilter])
+  }, [sortOption, statusFilter, filterCoop, filterCrossplay])
 
   useEffect(() => {
     const signal = { current: true }
@@ -71,6 +75,8 @@ export default function Dashboard() {
       await fetchBacklog({ current: true }, { silent: true })   // sin parpadeo
       if (patch.status) addToast('Estado actualizado')
       if (patch.owned_platform) addToast('Plataforma actualizada')
+      if (patch.hours_played) addToast('Horas registradas')
+      if (patch.enjoyment) addToast('Disfrute registrado')
     } catch (err) {
       addToast(err.message, 'error')
     } finally {
@@ -117,30 +123,38 @@ export default function Dashboard() {
 
         <StatsChart />
 
-        {/* Solapas por estado (underline tabs) */}
-        <div className="mb-6 flex gap-6 border-b border-[var(--line)] overflow-x-auto">
+        {/* Status chips */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           {STATUS_TABS.map(tab => {
             const active = statusFilter === tab.value
             return (
               <button
                 key={tab.value}
                 type="button"
-                onClick={() => setStatusFilter(tab.value)}
+                onClick={() => setStatusFilter(active ? 'todos' : tab.value)}
                 aria-pressed={active}
-                className={`relative -mb-px whitespace-nowrap px-1 pb-3 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors duration-200 ${
-                  active ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--text)]'
+                className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-full border transition-all duration-200 ${
+                  active
+                    ? 'bg-[var(--accent)] text-[var(--ink)] border-[var(--accent)]'
+                    : 'bg-[var(--surface-2)] text-[var(--muted)] border-[var(--line)] hover:border-[var(--accent)] hover:text-[var(--text)]'
                 }`}
               >
                 {tab.label}
-                <span
-                  aria-hidden
-                  className={`absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-[var(--accent)] transition-opacity duration-200 ease-out ${
-                    active ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
               </button>
             )
           })}
+          {(statusFilter !== 'todos' || filterCoop || filterCrossplay || filterDuration !== 'all') && (
+            <button
+              type="button"
+              onClick={() => { setStatusFilter('todos'); setFilterCoop(false); setFilterCrossplay(false); setFilterDuration('all'); }}
+              className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--danger)] hover:text-white hover:bg-[var(--danger)] border border-[var(--danger)]/40 rounded-full transition-all duration-200 flex items-center gap-1"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Limpiar
+            </button>
+          )}
         </div>
 
         {/* Sugerencia del día */}
@@ -188,12 +202,27 @@ export default function Dashboard() {
             <option value="medium">Media (10–20 hs)</option>
             <option value="long">Larga (+20 hs)</option>
           </select>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" checked={filterCoop} onChange={e => setFilterCoop(e.target.checked)}
+              className="accent-[var(--accent)] w-3.5 h-3.5" />
+            <span className="text-[var(--muted)] text-xs font-bold uppercase tracking-wider">Co-op</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" checked={filterCrossplay} onChange={e => setFilterCrossplay(e.target.checked)}
+              className="accent-[var(--accent)] w-3.5 h-3.5" />
+            <span className="text-[var(--muted)] text-xs font-bold uppercase tracking-wider">Crossplay</span>
+          </label>
+
           <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}
             className="ml-auto bg-[var(--surface-2)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] text-xs font-bold px-3 py-1.5 rounded transition-colors uppercase tracking-wider focus:outline-none focus:border-[var(--accent)]">
             <option value="duration_asc">Ordenar: Duración ↑</option>
             <option value="duration_desc">Ordenar: Duración ↓</option>
             <option value="value_asc">Ordenar: Valor ($/h)</option>
             <option value="price_asc">Ordenar: Precio ↑</option>
+            <option value="enjoyment_desc">Ordenar: Disfrute ↓</option>
+            <option value="added_desc">Ordenar: Recientes</option>
           </select>
         </div>
 
@@ -249,6 +278,7 @@ export default function Dashboard() {
                   key={game.id}
                   game={game}
                   controls={controls}
+                  onEdit={handleEdit}
                   onDelete={() => setPendingDelete(game)}
                 />
               )
@@ -258,7 +288,7 @@ export default function Dashboard() {
 
         {!loading && !error && filteredGames.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[var(--muted)] font-medium">No hay juegos en este estado. Agregá desde "Buscar" o cambiá de pestaña.</p>
+            <p className="text-[var(--muted)] font-medium">No tenés juegos que cumplan este filtro. Probá limpiar los filtros o buscá tu primer juego.</p>
           </div>
         )}
 

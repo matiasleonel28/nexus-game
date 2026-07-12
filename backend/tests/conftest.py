@@ -4,8 +4,9 @@ Provee: DB in-memory, TestClient de FastAPI, y helpers de auth.
 """
 import os
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 os.environ["DEV_NO_AUTH"] = "1"
 os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -20,8 +21,12 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def db():
-    """SQLite in-memory database, fresh per test."""
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    """SQLite in-memory database, fresh per test. Uses StaticPool to keep one connection."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     TestSession = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
     session = TestSession()

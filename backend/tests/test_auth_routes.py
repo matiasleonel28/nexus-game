@@ -81,6 +81,7 @@ class TestRefreshTokenRotation:
         })
         old_access = login_resp.cookies.get("access_token")
 
+        import time; time.sleep(1)  # ensure different JWT timestamp
         refresh_resp = client.post("/api/auth/refresh")
         assert refresh_resp.status_code == 200
         new_access = refresh_resp.cookies.get("access_token")
@@ -91,13 +92,10 @@ class TestRefreshTokenRotation:
             "username": test_user.email,
             "password": "TestPass123",
         })
-        tokens_before = db.query(RefreshToken).filter(
-            RefreshToken.user_id == test_user.id, RefreshToken.revoked == False
-        ).count()
 
+        import time; time.sleep(1)
         client.post("/api/auth/refresh")
 
-        # Old one revoked, new one issued
         active = db.query(RefreshToken).filter(
             RefreshToken.user_id == test_user.id, RefreshToken.revoked == False
         ).all()
@@ -113,10 +111,9 @@ class TestRefreshTokenRotation:
             "username": test_user.email,
             "password": "TestPass123",
         })
-        # Get current refresh token from cookies
         refresh_cookie = client.cookies.get("refresh_token")
 
-        # First refresh: success (rotates token)
+        import time; time.sleep(1)
         client.post("/api/auth/refresh")
 
         # Try reusing the OLD refresh token (simulate attacker)
@@ -124,7 +121,6 @@ class TestRefreshTokenRotation:
         resp = client.post("/api/auth/refresh")
         assert resp.status_code == 401
 
-        # ALL tokens should be revoked
         active = db.query(RefreshToken).filter(
             RefreshToken.user_id == test_user.id, RefreshToken.revoked == False
         ).count()
