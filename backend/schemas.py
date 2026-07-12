@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List, Literal
 from datetime import datetime
 
 # Lo que devuelve el buscador (viene de IGDB, aún no está en DB)
@@ -14,16 +14,16 @@ class SearchResult(BaseModel):
 # Lo que se manda para agregar un juego
 class AddGameRequest(BaseModel):
     igdb_id: int
-    owned_platform: Optional[str] = None   # pc | switch2 | xbox | ps5
+    owned_platform: Optional[Literal["pc", "switch2", "xbox", "ps5"]] = None   # pc | switch2 | xbox | ps5
 
 # Lo que se manda para editar un juego (todo opcional: se actualiza lo que venga)
 class UpdateGameRequest(BaseModel):
-    status: Optional[str] = None            # pendiente | jugando | completado | abandonado | wishlist
-    owned_platform: Optional[str] = None    # pc | switch2 | xbox | ps5
-    hours_played: Optional[float] = None
-    enjoyment: Optional[int] = None         # 1-5
-    target_price: Optional[float] = None    # precio objetivo del Hunter
-    watch_store: Optional[str] = None       # steam | eshop | xbox
+    status: Optional[Literal["backlog", "playing", "completed", "abandoned", "wishlist"]] = None
+    owned_platform: Optional[Literal["pc", "switch2", "xbox", "ps5"]] = None
+    hours_played: Optional[float] = Field(None, ge=0)
+    enjoyment: Optional[int] = Field(None, ge=1, le=5)         # 1-5
+    target_price: Optional[float] = Field(None, ge=0)    # precio objetivo del Hunter
+    watch_store: Optional[Literal["steam", "eshop", "xbox"]] = None
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -61,12 +61,12 @@ class BacklogStatsResponse(BaseModel):
 
 # --- Auth Schemas ---
 class UserCreate(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
 
 class UserLogin(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
 
 class UserResponse(BaseModel):
     id: int
@@ -92,11 +92,11 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 class ResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str
+    token: str = Field(...)
+    new_password: str = Field(..., min_length=8, max_length=128)
 
 # --- Hunter ---
 class AlertResponse(BaseModel):

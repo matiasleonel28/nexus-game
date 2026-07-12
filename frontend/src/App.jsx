@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 import NotFound from './pages/NotFound'
 import { GameRefreshProvider } from './context/GameRefreshContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -65,7 +66,8 @@ function AppRoutes() {
         <Route path="hunter" element={<HunterView />} />
         <Route path="alertas" element={<AlertsView />} />
       </Route>
-      {/* Ruta de Not Found fuera del layout protegido */}
+      {/* Ruta de Not Found y extras fuera del layout protegido */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
