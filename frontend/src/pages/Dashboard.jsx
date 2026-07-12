@@ -75,8 +75,8 @@ export default function Dashboard() {
       await fetchBacklog({ current: true }, { silent: true })   // sin parpadeo
       if (patch.status) addToast('Estado actualizado')
       if (patch.owned_platform) addToast('Plataforma actualizada')
-      if (patch.hours_played) addToast('Horas registradas')
-      if (patch.enjoyment) addToast('Disfrute registrado')
+      if ('hours_played' in patch) addToast('Horas registradas')
+      if ('enjoyment' in patch) addToast('Disfrute registrado')
     } catch (err) {
       addToast(err.message, 'error')
     } finally {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { platformLabel, formatPrice, PLATFORM_TO_STORE } from '../constants'
 
 function getButtonClass(variant = 'primary') {
@@ -43,6 +43,7 @@ function StarRating({ value, onChange, disabled }) {
 export default function GameCard({ game, actions = [], controls = null, onDelete = null, onEdit = null, showOwnedPlatform = true }) {
   const [hoursInput, setHoursInput] = useState('')
   const [editingHours, setEditingHours] = useState(false)
+  const cancelledRef = useRef(false)
 
   const getHighResCover = (url) => {
     if (!url) return "https://via.placeholder.com/264x352?text=Sin+Caratula";
@@ -62,6 +63,7 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
   const priceColor = isMatch ? 'text-[var(--positive)] font-bold drop-shadow-[0_0_5px_rgba(var(--positive-rgb),0.3)]' : (isUnownedOrCollection ? 'text-[var(--muted)] opacity-70' : 'text-[var(--text)]');
 
   const handleHoursSubmit = () => {
+    if (cancelledRef.current) { cancelledRef.current = false; return }
     const val = parseFloat(hoursInput)
     if (!isNaN(val) && val >= 0.1 && onEdit) {
       onEdit(game, { hours_played: val })
@@ -162,7 +164,7 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
                       autoFocus
                       value={hoursInput}
                       onChange={e => setHoursInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') handleHoursSubmit(); if (e.key === 'Escape') { setEditingHours(false); setHoursInput(''); } }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleHoursSubmit(); if (e.key === 'Escape') { cancelledRef.current = true; setEditingHours(false); setHoursInput(''); } }}
                       onBlur={handleHoursSubmit}
                       className="w-16 bg-[var(--surface-2)] border border-[var(--accent)] text-[var(--text)] font-num text-sm rounded px-1.5 py-0.5 focus:outline-none"
                     />

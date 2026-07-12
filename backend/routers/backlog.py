@@ -143,7 +143,7 @@ def get_backlog(
         if sort == "value_asc":
             return price / hours if hours and hours > 0 else float("inf")
         if sort == "enjoyment_desc":
-            return -(g.enjoyment or 0)
+            return (0 if g.enjoyment else 1, -(g.enjoyment or 0))
         if sort == "added_desc":
             return -(g.created_at.timestamp() if g.created_at else 0)
         return hours
