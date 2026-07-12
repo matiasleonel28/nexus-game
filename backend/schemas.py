@@ -51,6 +51,7 @@ class GameResponse(BaseModel):
     cost_per_hour:            Optional[float] = None
     enjoyment_per_hour:       Optional[float] = None
     release_date:             Optional[datetime]
+    recommendation_reason:    Optional[str] = None
 
     class Config:
         from_attributes = True  # permite leer desde objetos SQLAlchemy
