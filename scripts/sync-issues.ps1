@@ -84,6 +84,10 @@ foreach ($us in $stories) {
     # Verificar si existe
     $existingIssue = $existing | Where-Object { $_.title -eq $title }
 
+    # Write body to temp file to avoid PowerShell quoting issues
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    [System.IO.File]::WriteAllText($tempFile, $fullBody, [System.Text.Encoding]::UTF8)
+
     if ($existingIssue) {
         if ($Update) {
             if ($DryRun) {
@@ -91,7 +95,7 @@ foreach ($us in $stories) {
             } else {
                 Write-Host "  Actualizando issue #$($existingIssue.number): $usId..." -ForegroundColor Blue
                 try {
-                    gh issue edit $existingIssue.number --repo $Repo --body $fullBody
+                    gh issue edit $existingIssue.number --repo $Repo --body-file $tempFile
                     $updated++
                 } catch {
                     Write-Host "  ERROR actualizando $usId : $_" -ForegroundColor Red
@@ -110,7 +114,7 @@ foreach ($us in $stories) {
         } else {
             Write-Host "  Creando issue: $usId..." -ForegroundColor Green
             try {
-                gh issue create --repo $Repo --title $title --body $fullBody @labelFlags
+                gh issue create --repo $Repo --title $title --body-file $tempFile @labelFlags
                 $created++
             } catch {
                 Write-Host "  ERROR creando $usId : $_" -ForegroundColor Red
@@ -118,6 +122,8 @@ foreach ($us in $stories) {
             }
         }
     }
+
+    Remove-Item $tempFile -ErrorAction SilentlyContinue
 }
 
 Write-Host ""
