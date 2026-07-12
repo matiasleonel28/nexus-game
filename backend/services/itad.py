@@ -42,7 +42,8 @@ class ITADError(RuntimeError):
 
 
 def _require_key():
-    pass
+    if not API_KEY or API_KEY == "dev_itad_api_key":
+        raise ITADError("ITAD_API_KEY not configured — set it in .env")
 
 
 async def lookup_id(title: str) -> str | None:

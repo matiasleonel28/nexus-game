@@ -23,7 +23,7 @@ class UpdateGameRequest(BaseModel):
     hours_played: Optional[float] = Field(None, ge=0)
     enjoyment: Optional[int] = Field(None, ge=1, le=5)         # 1-5
     target_price: Optional[float] = Field(None, ge=0)    # precio objetivo del Hunter
-    watch_store: Optional[str] = Field(None, strip_whitespace=True, max_length=50)       # steam | eshop | xbox
+    watch_store: Optional[Literal["steam", "eshop", "xbox"]] = None
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -95,7 +95,7 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 class ResetPasswordRequest(BaseModel):
-    token: str = Field(..., strip_whitespace=True)
+    token: str = Field(...)
     new_password: str = Field(..., min_length=8, max_length=128)
 
 # --- Hunter ---
