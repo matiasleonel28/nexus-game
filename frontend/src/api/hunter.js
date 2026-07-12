@@ -6,6 +6,8 @@ export const getHunterPrices = (title) => client.get('/hunter/prices', { params:
 
 // Precios combinados por juego (Steam/Xbox vía ITAD + eShop vía Nintendo)
 export const getGamePrices = (gameId)    => client.get(`/hunter/game/${gameId}/prices`)
+// Historial de precios de un juego
+export const getGameHistory = (gameId)   => client.get(`/hunter/game/${gameId}/history`)
 // Vincular eShop: pegar link del juego en el eShop de EE.UU. -> extrae y cachea el nsuid
 export const resolveEshop  = (gameId, url) => client.post('/hunter/eshop/resolve', { game_id: gameId, url })
 

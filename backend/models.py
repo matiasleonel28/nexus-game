@@ -14,6 +14,8 @@ class User(Base):
     currency         = Column(String, default="ARS")
     available_hours_per_week = Column(Integer, nullable=True)
     stress_level_tolerance   = Column(String, nullable=True)
+    preferred_genres         = Column(String, nullable=True)
+    onboarding_dismissed_count = Column(Integer, default=0)
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
     games          = relationship("Game", back_populates="owner", cascade="all, delete-orphan")
@@ -43,15 +45,17 @@ class Game(Base):
     has_crossplay            = Column(Boolean, default=False)
     hours_played             = Column(Float, nullable=True)
     enjoyment                = Column(Integer, nullable=True)
+    abandon_reason           = Column(String, nullable=True)
 
     target_price             = Column(Float)
     watch_store              = Column(String)
     eshop_nsuid              = Column(String)
     created_at               = Column(DateTime(timezone=True), server_default=func.now())
 
-    owner     = relationship("User", back_populates="games")
-    platforms = relationship("Platform", back_populates="game", cascade="all, delete-orphan")
-    prices    = relationship("Price",    back_populates="game", cascade="all, delete-orphan")
+    owner         = relationship("User", back_populates="games")
+    platforms     = relationship("Platform", back_populates="game", cascade="all, delete-orphan")
+    prices        = relationship("Price",    back_populates="game", cascade="all, delete-orphan")
+    price_history = relationship("PriceHistory", back_populates="game", cascade="all, delete-orphan")
 
 
 class Platform(Base):
@@ -92,6 +96,19 @@ class Price(Base):
     updated_at    = Column(DateTime(timezone=True), server_default=func.now())
 
     game = relationship("Game", back_populates="prices")
+
+
+class PriceHistory(Base):
+    __tablename__ = "price_history"
+
+    id            = Column(Integer, primary_key=True)
+    game_id       = Column(Integer, ForeignKey("games.id"), index=True)
+    store_name    = Column(String)
+    price         = Column(Float)
+    currency      = Column(String, default="ARS")
+    recorded_at   = Column(DateTime(timezone=True), server_default=func.now())
+
+    game = relationship("Game", back_populates="price_history")
 
 
 class RefreshToken(Base):

@@ -24,6 +24,7 @@ class UpdateGameRequest(BaseModel):
     enjoyment: Optional[int] = Field(None, ge=1, le=5)         # 1-5
     target_price: Optional[float] = Field(None, ge=0)    # precio objetivo del Hunter
     watch_store: Optional[Literal["steam", "eshop", "xbox"]] = None
+    abandon_reason: Optional[str] = None
 
 # Lo que devuelve la API para cada juego guardado
 class GameResponse(BaseModel):
@@ -51,6 +52,8 @@ class GameResponse(BaseModel):
     cost_per_hour:            Optional[float] = None
     enjoyment_per_hour:       Optional[float] = None
     release_date:             Optional[datetime]
+    recommendation_reason:    Optional[str] = None
+    abandon_reason:           Optional[str] = None
 
     class Config:
         from_attributes = True  # permite leer desde objetos SQLAlchemy
@@ -73,6 +76,8 @@ class UserResponse(BaseModel):
     email: str
     available_hours_per_week: Optional[int] = None
     stress_level_tolerance: Optional[str] = None
+    preferred_genres: Optional[str] = None
+    onboarding_dismissed_count: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -80,6 +85,8 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     available_hours_per_week: Optional[int] = None
     stress_level_tolerance: Optional[str] = None
+    preferred_genres: Optional[str] = None
+    onboarding_dismissed_count: Optional[int] = None
 
 # Token ya no se usa en las respuestas (los tokens van en httpOnly cookies)
 # Se mantiene por compatibilidad con código legado / tests

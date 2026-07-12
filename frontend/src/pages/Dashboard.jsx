@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+import { NavLink } from 'react-router-dom'
 import { getBacklog, updateGame, deleteGame, getRecommendation } from '../api/games'
 import GameCard from '../components/GameCard'
 import ConfirmDialog from '../components/ConfirmDialog'
+import AbandonModal from '../components/AbandonModal'
 import StatsChart from '../components/StatsChart'
 import { useGameRefresh } from '../context/GameRefreshContext'
+import { useAuth } from '../context/AuthContext'
 import { LIBRARY_STATUSES, PLATFORMS } from '../constants'
 import { useToast } from '../context/ToastContext'
 
@@ -14,6 +17,8 @@ export default function Dashboard() {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
+  
+  const { user } = useAuth()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [filterDuration, setFilterDuration] = useState("all")
@@ -24,6 +29,7 @@ export default function Dashboard() {
 
   const [actioning, setActioning] = useState([])
   const [pendingDelete, setPendingDelete] = useState(null)   // juego a confirmar borrado
+  const [pendingAbandon, setPendingAbandon] = useState(null) // juego a abandonar
   const [deleting, setDeleting] = useState(false)
 
   const { backlogVersion } = useGameRefresh()
@@ -67,6 +73,11 @@ export default function Dashboard() {
   }, [backlogVersion])
 
   const handleEdit = async (game, patch) => {
+    if (patch.status === 'abandoned' && game.status !== 'abandoned') {
+      setPendingAbandon(game)
+      return
+    }
+
     const key = `edit-${game.id}`
     setActioning(prev => [...prev, key])
     setError(null)
@@ -77,6 +88,25 @@ export default function Dashboard() {
       if (patch.owned_platform) addToast('Plataforma actualizada')
       if ('hours_played' in patch) addToast('Horas registradas')
       if ('enjoyment' in patch) addToast('Disfrute registrado')
+    } catch (err) {
+      addToast(err.message, 'error')
+    } finally {
+      setActioning(prev => prev.filter(k => k !== key))
+    }
+  }
+
+  const confirmAbandon = async (reason) => {
+    if (!pendingAbandon) return
+    const patch = { status: 'abandoned', abandon_reason: reason || null }
+    const key = `edit-${pendingAbandon.id}`
+    setActioning(prev => [...prev, key])
+    const gameToUpdate = pendingAbandon
+    setPendingAbandon(null)
+    setError(null)
+    try {
+      await updateGame(gameToUpdate.id, patch)
+      await fetchBacklog({ current: true }, { silent: true })
+      addToast('Juego abandonado')
     } catch (err) {
       addToast(err.message, 'error')
     } finally {
@@ -158,7 +188,15 @@ export default function Dashboard() {
         </div>
 
         {/* Sugerencia del día */}
-        {recommendations.length > 0 && (
+        {user && (user.available_hours_per_week === null || user.stress_level_tolerance === null) ? (
+          <div className="mb-8 p-6 bg-[var(--surface)] border border-[var(--line)] rounded-lg text-center shadow-lg">
+            <h2 className="text-lg font-bold text-[var(--text)] uppercase tracking-widest mb-2">Sugerencia del día</h2>
+            <p className="text-[var(--muted)] text-sm mb-4">Completá tu perfil para obtener sugerencias personalizadas.</p>
+            <NavLink to="/perfil" className="inline-block px-5 py-2.5 bg-[var(--accent)] text-[var(--ink)] font-bold uppercase tracking-wider text-xs rounded transition-colors hover:bg-[var(--accent)]/90">
+              Completar perfil
+            </NavLink>
+          </div>
+        ) : recommendations.length > 0 && (
           <div className="mb-8 p-4 bg-[var(--surface)] border border-[var(--accent)]/30 rounded-lg shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)] relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[var(--accent)]"></div>
             <div className="flex items-center gap-2 mb-4 pl-3">
@@ -170,12 +208,18 @@ export default function Dashboard() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pl-3">
               {recommendations.map(game => (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  controls={null} // Opciones limitadas para la recomendación
-                  onDelete={() => setPendingDelete(game)}
-                />
+                <div key={game.id} className="flex flex-col gap-2">
+                  <GameCard
+                    game={game}
+                    controls={null} // Opciones limitadas para la recomendación
+                    onDelete={() => setPendingDelete(game)}
+                  />
+                  {game.recommendation_reason && (
+                    <div className="text-[10px] text-[var(--accent)] font-semibold bg-[var(--accent)]/10 px-2 py-1.5 rounded border border-[var(--accent)]/20 text-center uppercase tracking-wider">
+                      {game.recommendation_reason}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -303,6 +347,14 @@ export default function Dashboard() {
         busy={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <AbandonModal
+        open={!!pendingAbandon}
+        game={pendingAbandon}
+        onConfirm={confirmAbandon}
+        onCancel={() => setPendingAbandon(null)}
+        busy={pendingAbandon ? actioning.includes(`edit-${pendingAbandon.id}`) : false}
       />
     </div>
   )

@@ -1,3 +1,6 @@
+import json
+import random
+from datetime import datetime
 from sqlalchemy.orm import Session
 from models import Game, User
 from schemas import GameResponse
@@ -9,7 +12,8 @@ HIGH_STRESS_GENRES = [
     "Platform", 
     "Shooter", 
     "Hack and slash/Beat 'em up", 
-    "Tactical"
+    "Tactical",
+    "Souls-like"
 ]
 
 def get_recommendation(db: Session, current_user: User) -> list[GameResponse]:
@@ -45,19 +49,61 @@ def get_recommendation(db: Session, current_user: User) -> list[GameResponse]:
     if not filtered_games:
         filtered_games = games
 
-    # Si el tiempo semanal es bajo (< 15h), priorizar juegos cortos (hltb_main_hours asc)
-    # De lo contrario, priorizar los de mejor relación valor/precio (o dejar default)
+    # Evaluar constraints de tiempo
     is_time_constrained = current_user.available_hours_per_week is not None and current_user.available_hours_per_week < 15
 
+    # Géneros preferidos
+    preferred = []
+    if current_user.preferred_genres:
+        try:
+            preferred = json.loads(current_user.preferred_genres)
+        except Exception:
+            pass
+
+    # Ordenar por:
+    # 1. Menos horas (si time_constrained)
+    # 2. Preferidos (si los hay)
+    # 3. Factor diario de rotación
+    daily_seed = datetime.now().date().toordinal()
+
     def sort_key(g: Game):
-        hours = g.hltb_main_hours or 999.0
-        if is_time_constrained:
-            return hours
-        else:
-            return -hours
+        random.seed(f"{daily_seed}_{g.id}")
+        random_factor = random.random() * 20  # factor aleatorio hasta 20
+        
+        hours = g.hltb_main_hours or 50.0
+        time_score = hours if is_time_constrained else 0
+        
+        genre_bonus = 0
+        if preferred and g.genres:
+            game_genres = [x.strip() for x in g.genres.split(",")]
+            if any(p in game_genres for p in preferred):
+                genre_bonus = -30  # bonus importante
+
+        return time_score + genre_bonus + random_factor
 
     filtered_games.sort(key=sort_key)
-
-    # Devolvemos el top 1 para la sugerencia del día (o lista corta)
     top_recommendations = filtered_games[:3]
-    return [_to_response(g) for g in top_recommendations]
+    
+    responses = []
+    for g in top_recommendations:
+        resp = _to_response(g)
+        
+        reasons = []
+        if is_time_constrained and (g.hltb_main_hours or 0) <= 10:
+            reasons.append(f"Corto ({g.hltb_main_hours}h)")
+            
+        if current_user.stress_level_tolerance == "baja":
+            reasons.append("Relajante")
+            
+        if preferred and g.genres:
+            game_genres = [x.strip() for x in g.genres.split(",")]
+            if any(p in game_genres for p in preferred):
+                reasons.append("Tu género favorito")
+                
+        if not reasons:
+            reasons.append("Para tu backlog")
+            
+        resp.recommendation_reason = " — ".join(reasons)
+        responses.append(resp)
+
+    return responses

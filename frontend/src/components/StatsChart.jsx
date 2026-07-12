@@ -44,7 +44,7 @@ export default function StatsChart() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  const chartTitle = 'Runs completados';
+  const chartTitle = 'Tasa de Finalización';
 
   return (
     <div className="mb-8">
