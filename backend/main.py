@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -46,6 +46,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    if os.getenv("ENV") != "development" and os.getenv("DEV_NO_AUTH") != "1":
+        if request.headers.get("X-Forwarded-Proto", "https") != "https" and request.url.scheme != "https":
+            return Response("HTTPS Required", status_code=400)
+            
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
 
 app.include_router(search.router,   prefix="/api")
 app.include_router(backlog.router,  prefix="/api")
