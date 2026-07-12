@@ -29,7 +29,7 @@ async def evaluate_watches(db) -> list[Alert]:
             continue
 
         current = p["current"]
-        lowest = p.get("lowest")
+        lowest  = p.get("lowest")
 
         atype = None
         if g.target_price is not None and current <= g.target_price:
@@ -41,16 +41,16 @@ async def evaluate_watches(db) -> list[Alert]:
 
         # no duplicar una alerta que sigue sin leerse
         dup = db.query(Alert).filter(
-            Alert.game_id == g.id,
-            Alert.store == store,
-            Alert.type == atype,
-            Alert.is_read == False,   # noqa: E712
+            Alert.game_id   == g.id,
+            Alert.store     == store,
+            Alert.alert_type == atype,
+            Alert.is_read   == False,   # noqa: E712
         ).first()
         if dup:
             continue
 
         alert = Alert(user_id=g.user_id, game_id=g.id, store=store,
-                      type=atype, price=current)
+                      alert_type=atype, price=current)
         db.add(alert)
         created.append(alert)
 

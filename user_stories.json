@@ -1,0 +1,363 @@
+[
+  {
+    "id": "AUTH-01",
+    "title": "US-AUTH-01: Implement frontend login flow",
+    "body_file": "us/auth-01.md",
+    "labels": "epic:auth,type:feature,priority:P0,status:done",
+    "phase": 0,
+    "depends_on": [],
+    "blocks": ["MAN-01", "MAN-02", "MAN-03", "MAN-04", "MAN-05", "MAN-06", "HUNT-01", "HUNT-02", "HUNT-03", "HUNT-04", "BASE-01", "BASE-02", "UX-01"]
+  },
+  {
+    "id": "AUTH-02",
+    "title": "US-AUTH-02: Create a new user account",
+    "body_file": "us/auth-02.md",
+    "labels": "epic:auth,type:feature,priority:P0,status:partial",
+    "phase": 0,
+    "depends_on": [],
+    "blocks": ["AUTH-01", "INFRA-02", "UX-01"]
+  },
+  {
+    "id": "AUTH-03",
+    "title": "US-AUTH-03: Reset forgotten password",
+    "body_file": "us/auth-03.md",
+    "labels": "epic:auth,type:feature,priority:P1,status:done",
+    "phase": 0,
+    "depends_on": ["AUTH-02"],
+    "blocks": []
+  },
+  {
+    "id": "INFRA-01",
+    "title": "US-INFRA-01: DB model migration (normalization)",
+    "body_file": "us/infra-01.md",
+    "labels": "epic:infra,type:tech-debt,priority:P2,status:deferred",
+    "phase": 4,
+    "depends_on": [],
+    "blocks": [],
+    "note": "Downgraded to P2. Normalization attempt reverted (HANDOFF.md). Current model works."
+  },
+  {
+    "id": "MAN-01",
+    "title": "US-MAN-01: Add a game to my library",
+    "body_file": "us/man-01.md",
+    "labels": "epic:manager,type:feature,priority:P0,status:partial",
+    "phase": 1,
+    "depends_on": ["AUTH-01"],
+    "blocks": ["MAN-02", "MAN-03", "MAN-04", "MAN-05", "MAN-06", "UX-02", "UX-03"]
+  },
+  {
+    "id": "MAN-03",
+    "title": "US-MAN-03: Change game status",
+    "body_file": "us/man-03.md",
+    "labels": "epic:manager,type:feature,priority:P0,status:done",
+    "phase": 1,
+    "depends_on": ["MAN-01"],
+    "blocks": ["UX-03", "FEAT-01"]
+  },
+  {
+    "id": "MAN-05",
+    "title": "US-MAN-05: Track real play value (hours + enjoyment)",
+    "body_file": "us/man-05.md",
+    "labels": "epic:manager,type:feature,priority:P1,status:new",
+    "phase": 2,
+    "depends_on": ["MAN-01"],
+    "blocks": ["MAN-02"]
+  },
+  {
+    "id": "MAN-06",
+    "title": "US-MAN-06: Remove a game from library",
+    "body_file": "us/man-06.md",
+    "labels": "epic:manager,type:feature,priority:P1,status:done",
+    "phase": 1,
+    "depends_on": ["MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "MAN-02",
+    "title": "US-MAN-02: Organize backlog with filters and sorting",
+    "body_file": "us/man-02.md",
+    "labels": "epic:manager,type:feature,priority:P0,status:partial",
+    "phase": 2,
+    "depends_on": ["MAN-01"],
+    "blocks": ["MAN-04", "UX-06"]
+  },
+  {
+    "id": "MAN-04",
+    "title": "US-MAN-04: Filter co-op night games",
+    "body_file": "us/man-04.md",
+    "labels": "epic:manager,type:feature,priority:P1,status:partial",
+    "phase": 2,
+    "depends_on": ["MAN-01", "MAN-02"],
+    "blocks": []
+  },
+  {
+    "id": "HUNT-01",
+    "title": "US-HUNT-01: Watch the price of a desired game",
+    "body_file": "us/hunt-01.md",
+    "labels": "epic:hunter,type:feature,priority:P0,status:partial",
+    "phase": 2,
+    "depends_on": ["MAN-01"],
+    "blocks": ["HUNT-02", "HUNT-03", "HUNT-04", "UX-05", "HUNT-05"]
+  },
+  {
+    "id": "HUNT-02",
+    "title": "US-HUNT-02: Receive and manage price alerts",
+    "body_file": "us/hunt-02.md",
+    "labels": "epic:hunter,type:feature,priority:P0,status:done",
+    "phase": 2,
+    "depends_on": ["HUNT-01"],
+    "blocks": ["INFRA-05"]
+  },
+  {
+    "id": "HUNT-03",
+    "title": "US-HUNT-03: View historical price curve",
+    "body_file": "us/hunt-03.md",
+    "labels": "epic:hunter,type:feature,priority:P1,status:new",
+    "phase": 3,
+    "depends_on": ["HUNT-01"],
+    "blocks": []
+  },
+  {
+    "id": "HUNT-04",
+    "title": "US-HUNT-04: Force manual price refresh",
+    "body_file": "us/hunt-04.md",
+    "labels": "epic:hunter,type:feature,priority:P2,status:partial",
+    "phase": 3,
+    "depends_on": ["HUNT-01"],
+    "blocks": []
+  },
+  {
+    "id": "BASE-01",
+    "title": "US-BASE-01: Export and import library as JSON",
+    "body_file": "us/base-01.md",
+    "labels": "epic:base,type:feature,priority:P2,status:new",
+    "phase": 3,
+    "depends_on": ["MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "BASE-02",
+    "title": "US-BASE-02: User preferences (region and currency)",
+    "body_file": "us/base-02.md",
+    "labels": "epic:base,type:feature,priority:P2,status:partial",
+    "phase": 3,
+    "depends_on": ["AUTH-01"],
+    "blocks": []
+  },
+  {
+    "id": "INFRA-02",
+    "title": "US-INFRA-02: Translate RegisterPage to Spanish",
+    "body_file": "us/infra-02.md",
+    "labels": "epic:infra,type:bug,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": ["AUTH-02"],
+    "blocks": []
+  },
+  {
+    "id": "UX-01",
+    "title": "US-UX-01: Onboarding — Player profile setup",
+    "body_file": "us/ux-01.md",
+    "labels": "epic:ux,type:feature,priority:P1,status:partial",
+    "phase": 1,
+    "depends_on": ["AUTH-02"],
+    "blocks": ["UX-02"]
+  },
+  {
+    "id": "UX-02",
+    "title": "US-UX-02: Personalized recommendation (Daily pick)",
+    "body_file": "us/ux-02.md",
+    "labels": "epic:ux,type:feature,priority:P1,status:partial",
+    "phase": 2,
+    "depends_on": ["UX-01", "MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "UX-03",
+    "title": "US-UX-03: Stats dashboard (Reality Check)",
+    "body_file": "us/ux-03.md",
+    "labels": "epic:ux,type:feature,priority:P2,status:partial",
+    "phase": 2,
+    "depends_on": ["MAN-01", "MAN-03"],
+    "blocks": ["UX-09"]
+  },
+  {
+    "id": "UX-04",
+    "title": "US-UX-04: Toast notification system",
+    "body_file": "us/ux-04.md",
+    "labels": "epic:ux,type:feature,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "id": "UX-05",
+    "title": "US-UX-05: Cross-platform deal suggestions",
+    "body_file": "us/ux-05.md",
+    "labels": "epic:ux,type:feature,priority:P1,status:new",
+    "phase": 3,
+    "depends_on": ["HUNT-01", "MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "UX-06",
+    "title": "US-UX-06: Filters as actionable dropdown",
+    "body_file": "us/ux-06.md",
+    "labels": "epic:ux,type:improvement,priority:P1,status:new",
+    "phase": 2,
+    "depends_on": ["MAN-02"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-01",
+    "title": "US-FEAT-01: Gamification — Points for completing games",
+    "body_file": "us/feat-01.md",
+    "labels": "epic:features,type:feature,priority:P3,status:new",
+    "phase": 4,
+    "depends_on": ["MAN-03", "MAN-05"],
+    "blocks": []
+  },
+  {
+    "id": "INFRA-03",
+    "title": "US-INFRA-03: Dead code cleanup and minor fixes",
+    "body_file": "us/infra-03.md",
+    "labels": "epic:infra,type:tech-debt,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": [],
+    "blocks": []
+  },
+  {
+    "id": "INFRA-04",
+    "title": "US-INFRA-04: Configure Alembic with real migrations",
+    "body_file": "us/infra-04.md",
+    "labels": "epic:infra,type:tech-debt,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": [],
+    "blocks": ["MAN-05", "UX-01"]
+  },
+  {
+    "id": "INFRA-05",
+    "title": "US-INFRA-05: Real notifications in check_releases",
+    "body_file": "us/infra-05.md",
+    "labels": "epic:infra,type:improvement,priority:P2,status:new",
+    "phase": 3,
+    "depends_on": ["HUNT-02"],
+    "blocks": []
+  },
+  {
+    "id": "UX-07",
+    "title": "US-UX-07: Migrate hardcoded colors to design tokens",
+    "body_file": "us/ux-07.md",
+    "labels": "epic:ux,type:tech-debt,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": [],
+    "blocks": ["UX-08"]
+  },
+  {
+    "id": "UX-08",
+    "title": "US-UX-08: Restyle NotFound.jsx with design tokens",
+    "body_file": "us/ux-08.md",
+    "labels": "epic:ux,type:bug,priority:P1,status:new",
+    "phase": 1,
+    "depends_on": ["UX-07"],
+    "blocks": []
+  },
+  {
+    "id": "HUNT-05",
+    "title": "US-HUNT-05: Integrate Steamcito as price source",
+    "body_file": "us/hunt-05.md",
+    "labels": "epic:hunter,type:feature,priority:P2,status:new",
+    "phase": 3,
+    "depends_on": ["HUNT-01"],
+    "blocks": []
+  },
+  {
+    "id": "UX-09",
+    "title": "US-UX-09: Interactive progress chart (completed vs abandoned)",
+    "body_file": "us/ux-09.md",
+    "labels": "epic:ux,type:feature,priority:P2,status:new",
+    "phase": 3,
+    "depends_on": ["UX-03", "MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-02",
+    "title": "US-FEAT-02: Weekly planner",
+    "body_file": "us/feat-02.md",
+    "labels": "epic:features,type:feature,priority:P1,status:new",
+    "phase": 4,
+    "depends_on": ["MAN-05", "UX-01"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-03",
+    "title": "US-FEAT-03: Play streak tracking",
+    "body_file": "us/feat-03.md",
+    "labels": "epic:features,type:feature,priority:P2,status:new",
+    "phase": 4,
+    "depends_on": ["MAN-05"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-04",
+    "title": "US-FEAT-04: Bundle/pack price alert",
+    "body_file": "us/feat-04.md",
+    "labels": "epic:features,type:feature,priority:P2,status:new",
+    "phase": 4,
+    "depends_on": ["HUNT-01", "HUNT-03"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-05",
+    "title": "US-FEAT-05: Sale predictor",
+    "body_file": "us/feat-05.md",
+    "labels": "epic:features,type:feature,priority:P2,status:new",
+    "phase": 4,
+    "depends_on": ["HUNT-03"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-06",
+    "title": "US-FEAT-06: Permission to abandon (motivational micro-copy)",
+    "body_file": "us/feat-06.md",
+    "labels": "epic:features,type:feature,priority:P1,status:new",
+    "phase": 3,
+    "depends_on": ["MAN-03", "MAN-05"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-07",
+    "title": "US-FEAT-07: Co-op night mode",
+    "body_file": "us/feat-07.md",
+    "labels": "epic:features,type:feature,priority:P2,status:new",
+    "phase": 4,
+    "depends_on": ["MAN-04", "MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-08",
+    "title": "US-FEAT-08: Annual wrap (year in review)",
+    "body_file": "us/feat-08.md",
+    "labels": "epic:features,type:feature,priority:P3,status:new",
+    "phase": 5,
+    "depends_on": ["MAN-05", "UX-03"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-09",
+    "title": "US-FEAT-09: Import from platforms (Steam/Xbox)",
+    "body_file": "us/feat-09.md",
+    "labels": "epic:features,type:feature,priority:P3,status:new",
+    "phase": 5,
+    "depends_on": ["MAN-01"],
+    "blocks": []
+  },
+  {
+    "id": "FEAT-10",
+    "title": "US-FEAT-10: Similar games discovery",
+    "body_file": "us/feat-10.md",
+    "labels": "epic:features,type:feature,priority:P3,status:new",
+    "phase": 5,
+    "depends_on": ["MAN-05", "HUNT-01"],
+    "blocks": []
+  }
+]

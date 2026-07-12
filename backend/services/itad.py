@@ -7,7 +7,7 @@ de la región (country=AR -> ARS). Reemplaza a CheapShark (que solo daba Steam/U
 Requiere ITAD_API_KEY en el .env (gratis en https://isthereanydeal.com/apps/new/).
 
 NOTA: escrito contra la API v2 documentada. Las formas exactas de respuesta se
-verifican/ajustan la primera vez que corre con una key real (ver /api/hunter/raw).
+verifican/ajustan la primera vez que corre con una key real.
 """
 import os
 import aiohttp
@@ -18,6 +18,10 @@ load_dotenv()
 API_KEY  = os.getenv("ITAD_API_KEY")
 BASE     = "https://api.isthereanydeal.com"
 COUNTRY  = os.getenv("ITAD_COUNTRY", "AR")   # AR -> precios en ARS
+
+# Timeout para todas las llamadas a ITAD
+_TIMEOUT = aiohttp.ClientTimeout(total=10)
+
 
 # Mapea el nombre de tienda que devuelve ITAD -> nuestras claves internas.
 # Solo nos interesan estas tres (PS5 queda fuera del Hunter a propósito).
@@ -46,7 +50,7 @@ async def lookup_id(title: str) -> str | None:
     _require_key()
     url = f"{BASE}/games/lookup/v1"
     params = {"key": API_KEY, "title": title}
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.get(url, params=params) as r:
             data = await r.json()
     if data and data.get("found"):
@@ -58,7 +62,7 @@ async def _prices_by_id(game_id: str) -> list[dict]:
     """Ofertas actuales por tienda para un UUID de ITAD (incluye no-ofertas)."""
     url = f"{BASE}/games/prices/v2"
     params = {"key": API_KEY, "country": COUNTRY, "nondeals": "true", "vouchers": "false"}
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.post(url, params=params, json=[game_id]) as r:
             data = await r.json()
     if not data:
@@ -70,7 +74,7 @@ async def _history_lows_by_id(game_id: str) -> list[dict]:
     """Mínimo histórico por tienda para un UUID de ITAD."""
     url = f"{BASE}/games/storelow/v2"
     params = {"key": API_KEY, "country": COUNTRY}
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.post(url, params=params, json=[game_id]) as r:
             data = await r.json()
     if not data:

@@ -4,6 +4,7 @@ import { getGamePrices, resolveEshop } from '../api/hunter'
 import GameCard from '../components/GameCard'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { STORES, formatPrice } from '../constants'
+import { useToast } from '../context/ToastContext'
 
 const storeLabel = (key) => STORES.find(s => s.key === key)?.label ?? key
 // Primera tienda con precio real, o null
@@ -15,13 +16,13 @@ export default function WishlistView() {
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
   const [actioning, setActioning] = useState([])
   const [drafts, setDrafts] = useState({})   // id -> { store, target }
   const [prices, setPrices] = useState({})   // id -> { steam:{...}, eshop:{...}, xbox:{...} }
   const [eshopLinks, setEshopLinks] = useState({})   // id -> url del eShop US
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
+  const { addToast } = useToast()
 
   // Tienda por defecto a mostrar/vigilar:
   //  1) la que ya vigilás  2) la que tiene precio real
@@ -45,17 +46,17 @@ export default function WishlistView() {
     const d = draftFor(game)
     const target = parseFloat(d.target)
     if (Number.isNaN(target) || target <= 0) {
-      setError({ message: 'Ingresá un precio objetivo válido (ej: 5000).' })
+      addToast('Ingresá un precio objetivo válido (ej: 5000).', 'error')
       return
     }
-    setError(null); setSuccess(null)
+    setError(null)
     setActioning(prev => [...prev, `watch-${game.id}`])
     try {
       await updateGame(game.id, { target_price: target, watch_store: d.store })
-      setSuccess(`Vigilando "${game.title}" en ${d.store} ≤ ${formatPrice(target)}.`)
+      addToast('Vigilancia creada')
       await fetchWishlist({ current: true })
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(k => k !== `watch-${game.id}`))
     }
@@ -69,7 +70,6 @@ export default function WishlistView() {
       const data = await getWishlist()
       if (!signal.current) return
       setGames(data)
-      // Precios combinados por juego (Steam/Xbox ITAD + eShop Nintendo), en paralelo
       data.forEach(async (g) => {
         try {
           const pr = await getGamePrices(g.id)
@@ -101,16 +101,15 @@ export default function WishlistView() {
 
   const handleMoveToBacklog = async id => {
     setError(null)
-    setSuccess(null)
     setActioning(prev => [...prev, `move-${id}`])
 
     try {
       await updateStatus(id, 'pendiente')
-      setSuccess('Juego movido a tu biblioteca (Pendiente).')
+      addToast('Juego movido a tu biblioteca (Pendiente).')
       refreshBacklog()
       await fetchWishlist({ current: true })
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(key => key !== `move-${id}`))
     }
@@ -118,18 +117,18 @@ export default function WishlistView() {
 
   const handleResolveEshop = async (game) => {
     const url = (eshopLinks[game.id] || '').trim()
-    if (!url) { setError({ message: 'Pegá el link del juego en el eShop de EE.UU.' }); return }
-    setError(null); setSuccess(null)
+    if (!url) { addToast('Pegá el link del juego en el eShop de EE.UU.', 'error'); return }
+    setError(null)
     setActioning(prev => [...prev, `eshop-${game.id}`])
     try {
       const res = await resolveEshop(game.id, url)
       if (res?.eshop) {
         setPrices(prev => ({ ...prev, [game.id]: { ...(prev[game.id] || {}), eshop: res.eshop } }))
       }
-      setSuccess(`eShop vinculado a "${game.title}".`)
+      addToast(`eShop vinculado a "${game.title}".`)
       await fetchWishlist({ current: true })
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(k => k !== `eshop-${game.id}`))
     }
@@ -137,15 +136,14 @@ export default function WishlistView() {
 
   const handleRemove = async id => {
     setError(null)
-    setSuccess(null)
     setActioning(prev => [...prev, `delete-${id}`])
 
     try {
       await deleteGame(id)
-      setSuccess('Juego eliminado de la wishlist.')
+      addToast('Juego eliminado de la wishlist.')
       await fetchWishlist({ current: true })
     } catch (err) {
-      setError(err)
+      addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(key => key !== `delete-${id}`))
     }
@@ -156,17 +154,19 @@ export default function WishlistView() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-black uppercase tracking-wider text-white">Wishlist</h1>
-          <p className="text-gray-500 text-xs mt-1">Aquí verás tus juegos guardados en wishlist.</p>
+          <p className="text-[var(--muted)] text-xs mt-1">Aquí verás tus juegos guardados en wishlist.</p>
         </div>
 
-        {loading && <div className="text-center py-10 text-gray-500 font-bold uppercase tracking-wider">Cargando wishlist...</div>}
+        {loading && <div className="text-center py-10 text-[var(--muted)] font-bold uppercase tracking-wider">Cargando wishlist...</div>}
         
         {/* Error State Elegante */}
         {error && (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6 bg-[var(--ink)]">
-            <div className="text-4xl mb-4">📡</div>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-4 mx-auto">
+              <path d="M2 12a10 10 0 0 1 18-6"/><path d="M22 12a10 10 0 0 1-18 6"/><circle cx="12" cy="12" r="2"/>
+            </svg>
             <h3 className="text-xl font-bold text-white mb-2">Sincronización pausada</h3>
-            <p className="text-gray-400 max-w-sm mb-6">{error.message || error}</p>
+            <p className="text-[var(--muted)] max-w-sm mb-6">{error.message || error}</p>
             <button 
               onClick={() => window.location.reload()} 
               className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-strong)] text-[var(--ink)] font-medium rounded transition"
@@ -176,16 +176,14 @@ export default function WishlistView() {
           </div>
         )}
 
-        {success && <div className="mb-6 rounded-lg border border-green-500 bg-green-950/50 px-4 py-3 text-green-200">{success}</div>}
-
-        {!loading && games.length === 0 && !error && (
-          <div className="rounded-lg border border-gray-800 bg-[var(--surface)] px-6 py-8 text-gray-400">
+        {!loading && !error && games.length === 0 && (
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-6 py-8 text-[var(--muted)]">
             <p className="text-lg font-bold uppercase tracking-wider mb-2">No hay juegos en la wishlist.</p>
             <p className="text-sm">Busca un juego y agrégalo desde la pestaña Buscar.</p>
           </div>
         )}
 
-        {!loading && games.length > 0 && (
+        {!loading && !error && games.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {games.map(game => {
               const isMoving = actioning.includes(`move-${game.id}`)
@@ -202,7 +200,7 @@ export default function WishlistView() {
                 <div className="mt-3 rounded border border-[var(--line)] bg-[var(--surface-3)] p-2">
                   {game.target_price != null && (
                     <p className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-wider mb-1.5">
-                      Vigilando {storeLabel(game.watch_store || d.store)} ≤ {formatPrice(game.target_price)}
+                      Vigilando {storeLabel(game.watch_store || d.store)} ≤ <span className="font-num">{formatPrice(game.target_price)}</span>
                     </p>
                   )}
 
@@ -213,7 +211,7 @@ export default function WishlistView() {
                       {storePrice?.current != null ? (
                         <span className={`font-num text-base ${belowTarget ? 'text-[var(--positive)]' : 'text-[var(--text)]'}`}>
                           {formatPrice(storePrice.current, storePrice.currency)}
-                          {storePrice.cut > 0 && <span className="text-[var(--accent)] text-[10px] font-bold ml-1 font-sans">-{storePrice.cut}%</span>}
+                          {storePrice.cut > 0 && <span className="text-[var(--accent)] text-[10px] font-bold font-num ml-1">-{storePrice.cut}%</span>}
                         </span>
                       ) : (
                         <span className="text-[var(--muted)] text-[11px] font-bold">{hasPrices ? 'sin datos' : '…'}</span>
@@ -221,7 +219,10 @@ export default function WishlistView() {
                     </span>
                   </div>
                   {belowTarget && (
-                    <p className="text-[10px] text-[var(--positive)] font-bold uppercase tracking-wider mb-2">✓ ¡Por debajo de tu objetivo!</p>
+                    <p className="text-[10px] text-[var(--positive)] font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      ¡Por debajo de tu objetivo!
+                    </p>
                   )}
 
                   {/* Vincular eShop: solo si mirás eShop y el juego no tiene nsuid aún */}

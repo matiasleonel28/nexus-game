@@ -29,4 +29,7 @@ Thumbs.db
 
 # Archivos de documentación generados por IA o para uso local
 01-USER_STORIES.md # Se gestionarán como Issues en GitHub
-.claude 
+.claude
+skills-lock.json
+frontend/err.txt
+.agents/ 

@@ -16,7 +16,11 @@ PRICE_API = "https://api.ec.nintendo.com/v1/price"
 
 # nsuid: 14 dígitos que empiezan con 70 (Switch 7001..., Switch 2 7007..., etc.)
 _NSUID_RE = re.compile(r"\b70\d{12}\b")
-_HEADERS = {"User-Agent": "Mozilla/5.0"}
+_HEADERS  = {"User-Agent": "Mozilla/5.0"}
+
+# Timeouts: 15s para scraping de página web, 8s para la API de precios
+_SCRAPE_TIMEOUT = aiohttp.ClientTimeout(total=15)
+_API_TIMEOUT    = aiohttp.ClientTimeout(total=8)
 
 
 async def extract_nsuid(url: str) -> str | None:
@@ -26,7 +30,7 @@ async def extract_nsuid(url: str) -> str | None:
     14-dígitos que más se repite en la página (validado: en BOTW aparece 157
     veces vs. 13 del siguiente).
     """
-    async with aiohttp.ClientSession(headers=_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=_HEADERS, timeout=_SCRAPE_TIMEOUT) as session:
         async with session.get(url) as r:
             if r.status != 200:
                 return None
@@ -46,7 +50,7 @@ async def get_eshop_price(nsuid: str, country: str = "AR", lang: str = "es") -> 
     price_history (Nintendo no lo provee).
     """
     params = {"country": country, "lang": lang, "ids": nsuid}
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_API_TIMEOUT) as session:
         async with session.get(PRICE_API, params=params) as r:
             data = await r.json()
 
@@ -57,7 +61,7 @@ async def get_eshop_price(nsuid: str, country: str = "AR", lang: str = "es") -> 
     if p.get("sales_status") in (None, "not_found"):
         return None
 
-    reg = p.get("regular_price") or {}
+    reg  = p.get("regular_price") or {}
     disc = p.get("discount_price")   # presente solo si está en oferta
 
     def _amount(block):

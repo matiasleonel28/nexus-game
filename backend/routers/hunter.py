@@ -1,9 +1,7 @@
 """
 Módulo Hunter — precios y ofertas (Steam / eShop / Xbox) vía IsThereAnyDeal.
 
-Por ahora expone la consulta de precios y un endpoint de diagnóstico. Sobre esto,
-una vez verificado que ITAD devuelve datos reales en ARS, se construyen los
-"price watches" y las alertas.
+Expone consulta de precios, vigilancias (watches) y alertas de precio.
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -33,14 +31,6 @@ async def hunter_prices(title: str, current_user: User = Depends(get_current_use
         raise HTTPException(status_code=503, detail=str(e))
     return {"title": title, "stores": data}
 
-
-@router.get("/hunter/raw")
-async def hunter_raw(title: str, current_user: User = Depends(get_current_user)):
-    """Diagnóstico: respuestas crudas de ITAD para verificar el parseo."""
-    try:
-        return await itad.get_raw(title)
-    except itad.ITADError as e:
-        raise HTTPException(status_code=503, detail=str(e))
 
 
 @router.get("/hunter/game/{game_id}/prices")
@@ -97,7 +87,7 @@ def hunter_alerts(unread: bool = False,
         AlertResponse(
             id=a.id, game_id=a.game_id,
             title=a.game.title if a.game else "(juego eliminado)",
-            store=a.store, type=a.type, price=a.price,
+            store=a.store, alert_type=a.alert_type, price=a.price,
             is_read=a.is_read, triggered_at=a.triggered_at,
         )
         for a in alerts
