@@ -20,6 +20,8 @@ class AddGameRequest(BaseModel):
 class UpdateGameRequest(BaseModel):
     status: Optional[str] = None            # pendiente | jugando | completado | abandonado | wishlist
     owned_platform: Optional[str] = None    # pc | switch2 | xbox | ps5
+    hours_played: Optional[float] = None
+    enjoyment: Optional[int] = None         # 1-5
     target_price: Optional[float] = None    # precio objetivo del Hunter
     watch_store: Optional[str] = None       # steam | eshop | xbox
 
@@ -43,6 +45,11 @@ class GameResponse(BaseModel):
     price_store:              Optional[str]
     price_currency:           Optional[str] = None
     has_coop:                 bool
+    has_crossplay:            bool = False
+    hours_played:             Optional[float] = None
+    enjoyment:                Optional[int] = None
+    cost_per_hour:            Optional[float] = None
+    enjoyment_per_hour:       Optional[float] = None
     release_date:             Optional[datetime]
 
     class Config:

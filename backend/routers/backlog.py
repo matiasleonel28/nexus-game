@@ -37,6 +37,17 @@ def _pick_best_price(game: Game) -> Price | None:
 
 def _to_response(game: Game) -> GameResponse:
     price = _pick_best_price(game)
+    current = price.current_price if price else None
+
+    hours = game.hours_played
+    cost_per_hour = None
+    if hours and hours > 0 and current is not None:
+        cost_per_hour = round(current / hours, 2)
+
+    enjoyment_per_hour = None
+    if hours and hours > 0 and game.enjoyment is not None:
+        enjoyment_per_hour = round(game.enjoyment / hours, 3)
+
     return GameResponse(
         id=game.id,
         igdb_id=game.igdb_id,
@@ -51,11 +62,16 @@ def _to_response(game: Game) -> GameResponse:
         eshop_nsuid=game.eshop_nsuid,
         hltb_main_hours=game.hltb_main_hours,
         hltb_completionist_hours=game.hltb_completionist_hours,
-        current_price=price.current_price if price else None,
+        current_price=current,
         lowest_price=price.lowest_price if price else None,
         price_store=price.store_name if price else None,
         price_currency=price.currency if price else None,
         has_coop=game.has_coop,
+        has_crossplay=game.has_crossplay or False,
+        hours_played=game.hours_played,
+        enjoyment=game.enjoyment,
+        cost_per_hour=cost_per_hour,
+        enjoyment_per_hour=enjoyment_per_hour,
         release_date=game.release_date,
     )
 
@@ -94,10 +110,11 @@ def get_backlog_stats(
 
 @router.get("/backlog", response_model=list[GameResponse])
 def get_backlog(
-    sort:     str  = "duration_asc",
-    coop:     bool = False,
-    status:   str | None = None,
-    platform: str | None = None,
+    sort:      str  = "duration_asc",
+    coop:      bool = False,
+    crossplay: bool = False,
+    status:    str | None = None,
+    platform:  str | None = None,
     db:       Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -111,6 +128,8 @@ def get_backlog(
         query = query.filter(Game.owned_platform == platform)
     if coop:
         query = query.filter(Game.has_coop == True)  # noqa: E712
+    if crossplay:
+        query = query.filter(Game.has_crossplay == True)  # noqa: E712
 
     games = query.all()
 
@@ -118,12 +137,15 @@ def get_backlog(
         best  = _pick_best_price(g)
         price = best.current_price if best and best.current_price is not None else 999
         hours = g.hltb_main_hours or 999
-        if sort == "duration_asc":  return hours
-        if sort == "duration_desc": return -hours
-        if sort == "price_asc":     return price
+        if sort == "duration_asc":   return hours
+        if sort == "duration_desc":  return -hours
+        if sort == "price_asc":      return price
         if sort == "value_asc":
-            # FIX: evitar ZeroDivisionError si el juego tiene 0 horas HLTB
             return price / hours if hours and hours > 0 else float("inf")
+        if sort == "enjoyment_desc":
+            return -(g.enjoyment or 0)
+        if sort == "added_desc":
+            return -(g.created_at.timestamp() if g.created_at else 0)
         return hours
 
     games.sort(key=sort_key)
@@ -223,6 +245,16 @@ def update_game(
     if not game:
         raise HTTPException(status_code=404, detail="Juego no encontrado en tu biblioteca")
     update_data = body.model_dump(exclude_unset=True)
+
+    if "hours_played" in update_data:
+        h = update_data["hours_played"]
+        if h is not None and h < 0.1:
+            raise HTTPException(status_code=422, detail="Ingresá al menos 0.1 horas")
+    if "enjoyment" in update_data:
+        e = update_data["enjoyment"]
+        if e is not None and (e < 1 or e > 5):
+            raise HTTPException(status_code=422, detail="El disfrute debe ser entre 1 y 5")
+
     for key, value in update_data.items():
         setattr(game, key, value)
     db.commit()

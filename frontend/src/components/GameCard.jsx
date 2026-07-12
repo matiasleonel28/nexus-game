@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { platformLabel, formatPrice, PLATFORM_TO_STORE } from '../constants'
 
 function getButtonClass(variant = 'primary') {
@@ -11,7 +12,38 @@ function getButtonClass(variant = 'primary') {
   return `${base} bg-[var(--accent)] text-[var(--ink)] hover:bg-[var(--accent-strong)]`
 }
 
-export default function GameCard({ game, actions = [], controls = null, onDelete = null, showOwnedPlatform = true }) {
+function StarRating({ value, onChange, disabled }) {
+  const [hover, setHover] = useState(0)
+
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(star => {
+        const filled = star <= (hover || value || 0)
+        return (
+          <button
+            key={star}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(star)}
+            onMouseEnter={() => !disabled && setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            className={`p-0 transition-colors ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+            aria-label={`${star} de 5`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? 'var(--accent)' : 'none'} stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export default function GameCard({ game, actions = [], controls = null, onDelete = null, onEdit = null, showOwnedPlatform = true }) {
+  const [hoursInput, setHoursInput] = useState('')
+  const [editingHours, setEditingHours] = useState(false)
+
   const getHighResCover = (url) => {
     if (!url) return "https://via.placeholder.com/264x352?text=Sin+Caratula";
     const cleanUrl = url.startsWith('//') ? `https:${url}` : url;
@@ -19,17 +51,33 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
   };
 
   const isSearch = !game.status;
+  const isBacklog = game.status === 'backlog';
+  const canEditHours = !isSearch && !isBacklog;
+  const canEditEnjoyment = game.status === 'completed' || game.status === 'abandoned';
+
   const ownedLabel = platformLabel(game.owned_platform);
   const preferredStore = PLATFORM_TO_STORE[game.owned_platform];
-  // Match si es la tienda exacta O si es PC y la tienda es PC compatible (steam/xbox)
   const isMatch = game.price_store === preferredStore || (game.owned_platform?.startsWith('pc') && ['steam', 'xbox'].includes(game.price_store));
   const isUnownedOrCollection = !game.owned_platform || game.owned_platform === 'ps5';
   const priceColor = isMatch ? 'text-[var(--positive)] font-bold drop-shadow-[0_0_5px_rgba(var(--positive-rgb),0.3)]' : (isUnownedOrCollection ? 'text-[var(--muted)] opacity-70' : 'text-[var(--text)]');
 
+  const handleHoursSubmit = () => {
+    const val = parseFloat(hoursInput)
+    if (!isNaN(val) && val >= 0.1 && onEdit) {
+      onEdit(game, { hours_played: val })
+    }
+    setEditingHours(false)
+    setHoursInput('')
+  }
+
+  const handleEnjoymentChange = (val) => {
+    if (onEdit) onEdit(game, { enjoyment: val })
+  }
+
   return (
     <div className="flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-lg overflow-hidden hover:border-[var(--accent)] transition-colors duration-200 group">
 
-      {/* Carátula */}
+      {/* Cover */}
       <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-3)]">
         <img
           src={getHighResCover(game.cover_url)}
@@ -59,14 +107,14 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
         )}
       </div>
 
-      {/* Cuerpo */}
+      {/* Body */}
       <div className="p-4 flex flex-col flex-grow justify-between">
         <div>
           <h3 className="text-[var(--text)] font-semibold text-base line-clamp-1 group-hover:text-[var(--accent)] transition-colors" title={game.title}>
             {game.title}
           </h3>
 
-          {/* Tu plataforma */}
+          {/* Owned platform */}
           {!isSearch && showOwnedPlatform && (
             <div className="mt-1.5">
               {ownedLabel ? (
@@ -81,7 +129,7 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
             </div>
           )}
 
-          {/* Firma: horas HLTB en mono tabular */}
+          {/* HLTB hours */}
           {!isSearch && (
             <div className="mt-4 flex justify-between items-end">
               <div>
@@ -99,10 +147,76 @@ export default function GameCard({ game, actions = [], controls = null, onDelete
               </div>
             </div>
           )}
+
+          {/* Hours played + Enjoyment (MAN-05) */}
+          {canEditHours && (
+            <div className="mt-3 pt-3 border-t border-[var(--line)]">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[var(--muted)] text-[10px] uppercase tracking-[0.15em] font-semibold">Mis horas</p>
+                {editingHours ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      autoFocus
+                      value={hoursInput}
+                      onChange={e => setHoursInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleHoursSubmit(); if (e.key === 'Escape') { setEditingHours(false); setHoursInput(''); } }}
+                      onBlur={handleHoursSubmit}
+                      className="w-16 bg-[var(--surface-2)] border border-[var(--accent)] text-[var(--text)] font-num text-sm rounded px-1.5 py-0.5 focus:outline-none"
+                    />
+                    <span className="text-[var(--muted)] text-xs">h</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setHoursInput(game.hours_played != null ? String(game.hours_played) : ''); setEditingHours(true); }}
+                    className="font-num text-sm text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+                  >
+                    {game.hours_played != null ? (
+                      <>{game.hours_played}<span className="text-[var(--muted)] ml-0.5">h</span></>
+                    ) : (
+                      <span className="text-[var(--muted)] text-xs font-sans">Registrar</span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {canEditEnjoyment && (
+                <div className="flex items-center justify-between gap-2 mt-2">
+                  <p className="text-[var(--muted)] text-[10px] uppercase tracking-[0.15em] font-semibold">Disfrute</p>
+                  <StarRating
+                    value={game.enjoyment}
+                    onChange={handleEnjoymentChange}
+                    disabled={false}
+                  />
+                </div>
+              )}
+
+              {/* Derived metrics */}
+              {(game.cost_per_hour != null || game.enjoyment_per_hour != null) && (
+                <div className="mt-2 pt-2 border-t border-[var(--line)]/50 flex gap-3">
+                  {game.cost_per_hour != null && (
+                    <div>
+                      <p className="text-[var(--muted)] text-[9px] uppercase tracking-[0.15em] font-semibold">$/hora</p>
+                      <p className="font-num text-[var(--text)] text-xs">{formatPrice(game.cost_per_hour, game.price_currency)}</p>
+                    </div>
+                  )}
+                  {game.enjoyment_per_hour != null && (
+                    <div>
+                      <p className="text-[var(--muted)] text-[9px] uppercase tracking-[0.15em] font-semibold">Disfrute/h</p>
+                      <p className="font-num text-[var(--accent)] text-xs">{game.enjoyment_per_hour.toFixed(2)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div>
-          {/* Plataformas IGDB + precio */}
+          {/* IGDB platforms + price */}
           <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between gap-2">
             <div className="flex gap-1.5 flex-wrap">
               {game.platforms?.map((plat) => (

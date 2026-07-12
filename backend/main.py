@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from database import create_tables
+
 from scheduler import start_scheduler, stop_scheduler
 from routers import search, backlog, wishlist, auth, hunter
 

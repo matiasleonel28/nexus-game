@@ -39,6 +39,9 @@ class Game(Base):
     hltb_main_hours          = Column(Float)
     hltb_completionist_hours = Column(Float)
     has_coop                 = Column(Boolean, default=False)
+    has_crossplay            = Column(Boolean, default=False)
+    hours_played             = Column(Float, nullable=True)
+    enjoyment                = Column(Integer, nullable=True)
 
     target_price             = Column(Float)
     watch_store              = Column(String)
