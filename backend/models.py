@@ -51,9 +51,10 @@ class Game(Base):
     eshop_nsuid              = Column(String)
     created_at               = Column(DateTime(timezone=True), server_default=func.now())
 
-    owner     = relationship("User", back_populates="games")
-    platforms = relationship("Platform", back_populates="game", cascade="all, delete-orphan")
-    prices    = relationship("Price",    back_populates="game", cascade="all, delete-orphan")
+    owner         = relationship("User", back_populates="games")
+    platforms     = relationship("Platform", back_populates="game", cascade="all, delete-orphan")
+    prices        = relationship("Price",    back_populates="game", cascade="all, delete-orphan")
+    price_history = relationship("PriceHistory", back_populates="game", cascade="all, delete-orphan")
 
 
 class Platform(Base):
@@ -105,7 +106,7 @@ class PriceHistory(Base):
     currency      = Column(String, default="ARS")
     recorded_at   = Column(DateTime(timezone=True), server_default=func.now())
 
-    game = relationship("Game")
+    game = relationship("Game", back_populates="price_history")
 
 
 class RefreshToken(Base):

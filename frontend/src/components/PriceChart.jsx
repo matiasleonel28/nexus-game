@@ -4,9 +4,9 @@ import { formatPrice } from '../constants'
 
 // store keys and colors
 const STORE_COLORS = {
-  steam: '#3b82f6', // blue
-  xbox: '#10b981',  // green
-  eshop: '#ef4444', // red
+  steam: 'var(--accent)',
+  xbox: 'var(--positive)',
+  eshop: 'var(--danger)',
 }
 const STORE_LABELS = {
   steam: 'Steam',
@@ -60,7 +60,7 @@ export default function PriceChart({ history }) {
     if (active && payload && payload.length) {
       return (
         <div className="bg-[var(--surface)] border border-[var(--line)] rounded shadow-xl p-3 text-xs font-sans">
-          <p className="font-bold text-white mb-2 pb-2 border-b border-[var(--line)]">{label}</p>
+          <p className="font-bold text-[var(--text)] mb-2 pb-2 border-b border-[var(--line)]">{label}</p>
           {payload.map((entry, index) => (
             <div key={index} className="flex items-center justify-between gap-4 mb-1">
               <span style={{ color: entry.color }} className="font-semibold">

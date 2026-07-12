@@ -62,10 +62,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--ink)] text-white p-6 font-sans">
+    <div className="min-h-screen bg-[var(--ink)] text-[var(--text)] p-6 font-sans">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-black uppercase tracking-wider text-white">Mi Perfil</h1>
+          <h1 className="text-3xl font-black uppercase tracking-wider text-[var(--text)]">Mi Perfil</h1>
           <p className="text-[var(--muted)] text-xs mt-1">Tus preferencias de juego</p>
         </div>
 

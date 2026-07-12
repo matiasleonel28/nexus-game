@@ -4,40 +4,28 @@ import apiClient from '../api/client';
 import { useToast } from '../context/ToastContext';
 
 const GENRES = [
-  "Adventure",
-  "Puzzle",
-  "RPG narrativo",
-  "RPG",
-  "Shooter",
-  "Fighting",
-  "Platform",
-  "Hack and slash/Beat 'em up",
-  "Tactical",
-  "Indie",
-  "Strategy",
-  "Souls-like"
+  'RPG', 'Adventure', 'Shooter', 'Platform', 'Puzzle', 'Strategy',
+  'Indie', 'Simulator', 'Racing', 'Sport', 'Fighting',
+  "Hack and slash/Beat 'em up", 'Visual Novel', 'Turn-based strategy',
+  'Point-and-click', 'Real Time Strategy',
 ];
 
 export default function UserOnboarding() {
   const { user, refetchUser } = useAuth();
-  
-  // Si el usuario no está cargado o ya tiene las preferencias, no renderizamos el modal.
-  if (!user || (user.available_hours_per_week !== null && user.stress_level_tolerance !== null)) {
-    return null;
-  }
-
-  // Hide if dismissed 3 or more times
-  if (user.onboarding_dismissed_count >= 3) {
-    return null;
-  }
-
+  const { addToast } = useToast();
   const [hours, setHours] = useState('');
   const [stress, setStress] = useState('');
   const [genres, setGenres] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  
-  const { addToast } = useToast();
+
+  if (!user || (user.available_hours_per_week !== null && user.stress_level_tolerance !== null)) {
+    return null;
+  }
+
+  if (user.onboarding_dismissed_count >= 3) {
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
