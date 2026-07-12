@@ -135,6 +135,66 @@ def update_users_me(
     return current_user
 
 
+@router.delete("/me")
+@limiter.limit("5/minute")
+def delete_users_me(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Elimina la cuenta del usuario y todos sus datos en cascada."""
+    db.delete(current_user)
+    db.commit()
+    _clear_auth_cookies(response)
+    return {"message": "Cuenta eliminada exitosamente."}
+
+
+@router.get("/me/export")
+@limiter.limit("5/minute")
+def export_users_me(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """Devuelve todos los datos del usuario en formato JSON."""
+    user_data = {
+        "email": current_user.email,
+        "region": current_user.region,
+        "currency": current_user.currency,
+        "available_hours_per_week": current_user.available_hours_per_week,
+        "stress_level_tolerance": current_user.stress_level_tolerance,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+        "games": [],
+        "alerts": []
+    }
+    
+    for game in current_user.games:
+        game_data = {
+            "igdb_id": game.igdb_id,
+            "title": game.title,
+            "status": game.status,
+            "owned_platform": game.owned_platform,
+            "hours_played": game.hours_played,
+            "enjoyment": game.enjoyment,
+            "target_price": game.target_price,
+            "watch_store": game.watch_store,
+            "added_at": game.created_at.isoformat() if game.created_at else None,
+        }
+        user_data["games"].append(game_data)
+        
+    for alert in current_user.alerts:
+        alert_data = {
+            "game_id": alert.game_id,
+            "store": alert.store,
+            "alert_type": alert.alert_type,
+            "price": alert.price,
+            "triggered_at": alert.triggered_at.isoformat() if alert.triggered_at else None,
+        }
+        user_data["alerts"].append(alert_data)
+        
+    return user_data
+
+
 @router.post("/register", response_model=UserResponse, status_code=201)
 @limiter.limit("5/minute")
 def register(
