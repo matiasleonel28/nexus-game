@@ -69,7 +69,8 @@ function AppRoutes() {
         <Route path="alertas" element={<AlertsView />} />
         <Route path="perfil" element={<ProfilePage />} />
       </Route>
-      {/* Ruta de Not Found fuera del layout protegido */}
+      {/* Ruta de Not Found y extras fuera del layout protegido */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

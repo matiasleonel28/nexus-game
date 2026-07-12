@@ -20,6 +20,7 @@ class User(Base):
 
     games          = relationship("Game", back_populates="owner", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    alerts         = relationship("Alert", back_populates="user", cascade="all, delete-orphan")
 
 
 class Game(Base):
@@ -80,6 +81,7 @@ class Alert(Base):
     triggered_at = Column(DateTime(timezone=True), server_default=func.now())
 
     game = relationship("Game")
+    user = relationship("User", back_populates="alerts")
 
 
 class Price(Base):

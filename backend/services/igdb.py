@@ -3,11 +3,12 @@ import os
 import time
 import asyncio
 from dotenv import load_dotenv
+from security import _require_secret
 
 load_dotenv()
 
-CLIENT_ID     = os.getenv("IGDB_CLIENT_ID")
-CLIENT_SECRET = os.getenv("IGDB_CLIENT_SECRET")
+CLIENT_ID     = _require_secret("IGDB_CLIENT_ID", "dev_igdb_client_id")
+CLIENT_SECRET = _require_secret("IGDB_CLIENT_SECRET", "dev_igdb_client_secret")
 
 # Timeout estándar para todas las llamadas a IGDB / Twitch
 _TIMEOUT = aiohttp.ClientTimeout(total=10)
