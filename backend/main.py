@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -26,14 +27,22 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
-# Permite que el frontend en localhost:5173/5174 consuma la API con cookies
+# Permite CORS dinámico según entorno
+allowed_origins = []
+if os.getenv("DEV_NO_AUTH") == "1" or os.getenv("ENV") == "development":
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ]
+else:
+    origins_env = os.getenv("ALLOWED_ORIGINS", "")
+    if origins_env:
+        allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip() and o.strip() != "*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Puerto por defecto de Vite
-        "http://localhost:5174",  # Puerto alternativo de Vite
-    ],
-    allow_credentials=True,   # Requerido para que el browser envíe cookies cross-origin
+    allow_origins=allowed_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
