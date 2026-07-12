@@ -7,6 +7,11 @@ from database import create_tables
 from scheduler import start_scheduler, stop_scheduler
 from routers import search, backlog, wishlist, auth, hunter
 
+from limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +22,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Nexus API", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # Permite que el frontend en localhost:5173/5174 consuma la API con cookies
 app.add_middleware(

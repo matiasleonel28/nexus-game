@@ -27,6 +27,7 @@ from security import (
     REFRESH_TOKEN_EXPIRE_DAYS,
     create_password_reset_token, verify_password_reset_token
 )
+from limiter import limiter
 
 router = APIRouter()
 
@@ -135,7 +136,9 @@ def update_users_me(
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
+@limiter.limit("5/minute")
 def register(
+    request: Request,
     user_data: UserCreate,
     response: Response,
     db: Session = Depends(get_db)
@@ -158,7 +161,9 @@ def register(
 
 
 @router.post("/login", response_model=UserResponse)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     response: Response = None,
     db: Session = Depends(get_db)
@@ -268,7 +273,8 @@ def logout(
 
 
 @router.post("/forgot-password")
-def forgot_password(request_body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def forgot_password(request: Request, request_body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request_body.email).first()
     # Por seguridad, no revelamos si el email existe o no.
     # Siempre devolvemos una respuesta exitosa.
