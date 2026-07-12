@@ -73,6 +73,8 @@ class UserResponse(BaseModel):
     email: str
     available_hours_per_week: Optional[int] = None
     stress_level_tolerance: Optional[str] = None
+    preferred_genres: Optional[str] = None
+    onboarding_dismissed_count: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -80,6 +82,8 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     available_hours_per_week: Optional[int] = None
     stress_level_tolerance: Optional[str] = None
+    preferred_genres: Optional[str] = None
+    onboarding_dismissed_count: Optional[int] = None
 
 # Token ya no se usa en las respuestas (los tokens van en httpOnly cookies)
 # Se mantiene por compatibilidad con código legado / tests

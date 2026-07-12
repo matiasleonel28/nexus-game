@@ -10,6 +10,8 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import ProfilePage from './pages/ProfilePage'
 import NotFound from './pages/NotFound'
 import { GameRefreshProvider } from './context/GameRefreshContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -22,6 +24,7 @@ const NAV_ITEMS = [
   { path: '/wishlist', label: 'Wishlist' },
   { path: '/hunter', label: 'Hunter' },
   { path: '/alertas', label: 'Alertas' },
+  { path: '/perfil', label: 'Perfil' },
 ]
 
 function ProtectedRoute({ children }) {
@@ -64,6 +67,7 @@ function AppRoutes() {
         <Route path="wishlist" element={<WishlistView />} />
         <Route path="hunter" element={<HunterView />} />
         <Route path="alertas" element={<AlertsView />} />
+        <Route path="perfil" element={<ProfilePage />} />
       </Route>
       {/* Ruta de Not Found fuera del layout protegido */}
       <Route path="*" element={<NotFound />} />

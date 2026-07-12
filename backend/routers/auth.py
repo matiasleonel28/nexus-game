@@ -128,6 +128,10 @@ def update_users_me(
         current_user.available_hours_per_week = user_update.available_hours_per_week
     if user_update.stress_level_tolerance is not None:
         current_user.stress_level_tolerance = user_update.stress_level_tolerance
+    if user_update.preferred_genres is not None:
+        current_user.preferred_genres = user_update.preferred_genres
+    if user_update.onboarding_dismissed_count is not None:
+        current_user.onboarding_dismissed_count = user_update.onboarding_dismissed_count
     
     db.commit()
     db.refresh(current_user)

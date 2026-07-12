@@ -14,6 +14,8 @@ class User(Base):
     currency         = Column(String, default="ARS")
     available_hours_per_week = Column(Integer, nullable=True)
     stress_level_tolerance   = Column(String, nullable=True)
+    preferred_genres         = Column(String, nullable=True)
+    onboarding_dismissed_count = Column(Integer, default=0)
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
     games          = relationship("Game", back_populates="owner", cascade="all, delete-orphan")
