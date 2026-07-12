@@ -20,7 +20,7 @@ async def evaluate_watches(db) -> list[Alert]:
     for g in watched:
         store = g.watch_store or "steam"
         try:
-            prices = await get_game_prices(g)   # steam/xbox (ITAD) + eshop (Nintendo)
+            prices = await get_game_prices(g, db=db)   # steam/xbox (ITAD) + eshop (Nintendo)
         except Exception:
             continue   # sin red / juego no encontrado -> se salta
 

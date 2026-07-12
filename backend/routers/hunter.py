@@ -42,7 +42,34 @@ async def hunter_game_prices(game_id: int,
                                  Game.user_id == current_user.id).first()
     if not game:
         raise HTTPException(status_code=404, detail="Juego no encontrado")
-    return {"title": game.title, "stores": await get_game_prices(game)}
+    return {"title": game.title, "stores": await get_game_prices(game, db=db)}
+
+
+@router.get("/hunter/game/{game_id}/history")
+def hunter_game_history(game_id: int,
+                        db: Session = Depends(get_db),
+                        current_user: User = Depends(get_current_user)):
+    """Historial de precios de un juego agrupado por tienda."""
+    from models import PriceHistory
+    
+    game = db.query(Game).filter(Game.id == game_id,
+                                 Game.user_id == current_user.id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Juego no encontrado")
+        
+    history = db.query(PriceHistory).filter(PriceHistory.game_id == game_id).order_by(PriceHistory.recorded_at.asc()).all()
+    
+    result = {}
+    for h in history:
+        if h.store_name not in result:
+            result[h.store_name] = []
+        result[h.store_name].append({
+            "date": h.recorded_at.isoformat(),
+            "price": h.price,
+            "currency": h.currency
+        })
+        
+    return result
 
 
 @router.post("/hunter/eshop/resolve")

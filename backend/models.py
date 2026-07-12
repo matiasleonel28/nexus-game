@@ -44,6 +44,7 @@ class Game(Base):
     has_crossplay            = Column(Boolean, default=False)
     hours_played             = Column(Float, nullable=True)
     enjoyment                = Column(Integer, nullable=True)
+    abandon_reason           = Column(String, nullable=True)
 
     target_price             = Column(Float)
     watch_store              = Column(String)
@@ -92,6 +93,19 @@ class Price(Base):
     updated_at    = Column(DateTime(timezone=True), server_default=func.now())
 
     game = relationship("Game", back_populates="prices")
+
+
+class PriceHistory(Base):
+    __tablename__ = "price_history"
+
+    id            = Column(Integer, primary_key=True)
+    game_id       = Column(Integer, ForeignKey("games.id"), index=True)
+    store_name    = Column(String)
+    price         = Column(Float)
+    currency      = Column(String, default="ARS")
+    recorded_at   = Column(DateTime(timezone=True), server_default=func.now())
+
+    game = relationship("Game")
 
 
 class RefreshToken(Base):

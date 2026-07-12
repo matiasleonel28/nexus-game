@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getWishlist, updateStatus, deleteGame, updateGame } from '../api/games'
-import { getGamePrices, resolveEshop } from '../api/hunter'
+import { getGamePrices, resolveEshop, getGameHistory } from '../api/hunter'
 import GameCard from '../components/GameCard'
+import PriceChart from '../components/PriceChart'
 import { useGameRefresh } from '../context/GameRefreshContext'
 import { STORES, formatPrice } from '../constants'
 import { useToast } from '../context/ToastContext'
@@ -20,6 +21,8 @@ export default function WishlistView() {
   const [drafts, setDrafts] = useState({})   // id -> { store, target }
   const [prices, setPrices] = useState({})   // id -> { steam:{...}, eshop:{...}, xbox:{...} }
   const [eshopLinks, setEshopLinks] = useState({})   // id -> url del eShop US
+  const [histories, setHistories] = useState({})     // id -> history object
+  const [expandedHistory, setExpandedHistory] = useState({}) // id -> boolean
 
   const { wishlistVersion, refreshBacklog } = useGameRefresh()
   const { addToast } = useToast()
@@ -59,6 +62,22 @@ export default function WishlistView() {
       addToast(err.message, 'error')
     } finally {
       setActioning(prev => prev.filter(k => k !== `watch-${game.id}`))
+    }
+  }
+
+  const toggleHistory = async (gameId) => {
+    if (!expandedHistory[gameId]) {
+      setExpandedHistory(prev => ({ ...prev, [gameId]: true }))
+      if (!histories[gameId]) {
+        try {
+          const hist = await getGameHistory(gameId)
+          setHistories(prev => ({ ...prev, [gameId]: hist }))
+        } catch (err) {
+          addToast(err.message, 'error')
+        }
+      }
+    } else {
+      setExpandedHistory(prev => ({ ...prev, [gameId]: false }))
     }
   }
 
@@ -194,6 +213,7 @@ export default function WishlistView() {
               const hasPrices = prices[game.id] !== undefined
               const targetNum = parseFloat(d.target)
               const belowTarget = storePrice?.current != null && !Number.isNaN(targetNum) && targetNum > 0 && storePrice.current <= targetNum
+              const nearLowest = storePrice?.current != null && storePrice?.lowest != null && storePrice.current <= storePrice.lowest * 1.1
 
               const watchControls = (
                 <>
@@ -218,11 +238,29 @@ export default function WishlistView() {
                       )}
                     </span>
                   </div>
+                  {nearLowest && !belowTarget && (
+                    <p className="text-[9px] text-[var(--positive)] font-bold uppercase tracking-wider mb-2 flex items-center gap-1 border border-[var(--positive)]/30 bg-[var(--positive)]/10 px-1.5 py-0.5 rounded w-max">
+                      Cerca del mínimo
+                    </p>
+                  )}
                   {belowTarget && (
                     <p className="text-[10px] text-[var(--positive)] font-bold uppercase tracking-wider mb-2 flex items-center gap-1">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       ¡Por debajo de tu objetivo!
                     </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => toggleHistory(game.id)}
+                    className="w-full mb-2 rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer transition"
+                  >
+                    {expandedHistory[game.id] ? 'Ocultar historial' : 'Ver historial de precios'}
+                  </button>
+                  {expandedHistory[game.id] && (
+                    <div className="mb-2 bg-[var(--ink)] border border-[var(--line)] rounded p-1">
+                      <PriceChart history={histories[game.id]} />
+                    </div>
                   )}
 
                   {/* Vincular eShop: solo si mirás eShop y el juego no tiene nsuid aún */}

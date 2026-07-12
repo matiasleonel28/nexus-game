@@ -100,6 +100,11 @@ export default function HunterView() {
                               ¡en su mínimo!
                             </span>
                           )}
+                          {!isHistoricLow && current != null && lowest != null && current <= lowest * 1.1 && (
+                            <span className="ml-2 text-[var(--positive)] font-bold inline-flex items-center gap-1 border border-[var(--positive)]/30 bg-[var(--positive)]/10 px-1.5 py-0.5 rounded">
+                              Cerca del mínimo
+                            </span>
+                          )}
                         </p>
                       ) : (
                         <p className="text-[var(--muted)] text-[11px] mt-0.5">Sin datos en esta tienda</p>
