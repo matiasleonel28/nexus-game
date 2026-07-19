@@ -66,6 +66,19 @@ def _hash_token(token: str) -> str:
 
 # ── Dependency: usuario actual ────────────────────────────────────────────────
 
+def _is_mobile(request: Request) -> bool:
+    """Detect mobile clients via X-Client header."""
+    return request.headers.get("x-client", "").lower() == "mobile"
+
+
+def _extract_bearer_token(request: Request) -> Optional[str]:
+    """Extract token from Authorization: Bearer <token> header."""
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]
+    return None
+
+
 def get_current_user(
     request: Request,
     db: Session = Depends(get_db)
@@ -77,12 +90,8 @@ def get_current_user(
     )
 
     # --- Bypass SOLO para desarrollo local (activar con DEV_NO_AUTH=1) ---
-    # Permite probar la app sin login. Usa un usuario fijo "dev@local".
-    # En producción NO se define esta variable y la auth funciona normal.
     if os.getenv("DEV_NO_AUTH") == "1":
-        # En dev-mode, si hay un token en cookie lo verificamos igual.
-        # Si no hay ninguno, usamos dev@local.
-        token = request.cookies.get(COOKIE_ACCESS)
+        token = _extract_bearer_token(request) or request.cookies.get(COOKIE_ACCESS)
         if not token:
             dev_user = db.query(User).filter(User.email == "dev@local").first()
             if dev_user is None:
@@ -93,7 +102,8 @@ def get_current_user(
             return dev_user
     # ---------------------------------------------------------------------
 
-    token = request.cookies.get(COOKIE_ACCESS)
+    # Bearer token (mobile) takes precedence, then cookie (web)
+    token = _extract_bearer_token(request) or request.cookies.get(COOKIE_ACCESS)
     if not token:
         raise credentials_exception
 
@@ -152,6 +162,15 @@ def register(
     refresh_token = create_refresh_token(data={"sub": new_user.email})
     _store_refresh_token(db, new_user.id, refresh_token)
 
+    if _is_mobile(request):
+        return {
+            "id": new_user.id, "email": new_user.email,
+            "available_hours_per_week": new_user.available_hours_per_week,
+            "stress_level_tolerance": new_user.stress_level_tolerance,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+
     # Registro siempre recuerda (cookie persistente)
     _set_auth_cookies(response, access_token, refresh_token, remember=True)
     return new_user
@@ -179,11 +198,20 @@ def login(
     refresh_token = create_refresh_token(data={"sub": user.email})
     _store_refresh_token(db, user.id, refresh_token)
 
+    if _is_mobile(request):
+        return {
+            "id": user.id, "email": user.email,
+            "available_hours_per_week": user.available_hours_per_week,
+            "stress_level_tolerance": user.stress_level_tolerance,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+
     _set_auth_cookies(response, access_token, refresh_token, remember=remember)
     return user
 
 
-@router.post("/refresh", response_model=UserResponse)
+@router.post("/refresh")
 def refresh_token_endpoint(
     request: Request,
     response: Response,
@@ -202,7 +230,8 @@ def refresh_token_endpoint(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    raw_refresh = request.cookies.get(COOKIE_REFRESH)
+    # Mobile sends refresh token as Bearer, web uses cookie
+    raw_refresh = _extract_bearer_token(request) or request.cookies.get(COOKIE_REFRESH)
     if not raw_refresh:
         raise credentials_exception
 
@@ -227,8 +256,6 @@ def refresh_token_endpoint(
     ).first()
 
     if not stored or stored.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        # Token no encontrado o expirado → posible ataque de reuse
-        # Revocar TODOS los tokens del usuario como medida de seguridad
         db.query(RefreshToken).filter(RefreshToken.user_id == user.id).update({"revoked": True})
         db.commit()
         raise credentials_exception
@@ -242,8 +269,17 @@ def refresh_token_endpoint(
     new_refresh = create_refresh_token(data={"sub": user.email})
     _store_refresh_token(db, user.id, new_refresh)
 
+    if _is_mobile(request):
+        return {
+            "id": user.id, "email": user.email,
+            "available_hours_per_week": user.available_hours_per_week,
+            "stress_level_tolerance": user.stress_level_tolerance,
+            "access_token": new_access,
+            "refresh_token": new_refresh,
+        }
+
     # Mantener la persistencia de la cookie refresh anterior
-    remember = stored.expires_at is not None  # si tenía max_age, mantenerla persistente
+    remember = stored.expires_at is not None
     _set_auth_cookies(response, new_access, new_refresh, remember=remember)
     return user
 
