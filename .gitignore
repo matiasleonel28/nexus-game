@@ -13,6 +13,7 @@ test-results/
 
 # --- Secretos ---
 .env
+.secrets
 
 # --- SO / editor ---
 .DS_Store
